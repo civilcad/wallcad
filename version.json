@@ -1,10 +1,12 @@
 {
-  "version": "23",
+  "version": "28",
   "date": "19 Nov 2026",
   "notes": [
-    "New name: WallCAD. Your saved plans are kept.",
-    "Export DXF (AutoCAD) is now a full AutoCAD 2010 drawing: layers with colours, line types and weights, real hatches, real dimensions, and doors, windows and furniture as blocks.",
-    "3D of a part: tap 3D, then pick an area on the plan or use your selected walls. Or show the whole drawing.",
-    "In 3D, the ALL / PART button switches between the whole house and a part."
+    "Safer saving: every change is also kept in a second backup database, so plans survive even if the normal browser storage fails.",
+    "Saved \u2713 sign next to the plan name, and a red warning if a save ever fails.",
+    "Earlier versions: Menu \u203a Earlier versions goes back to a copy from a few minutes ago.",
+    "PC: Ctrl+S saves to a real .wallcad file, then saves there again automatically every 2 minutes.",
+    "Save to Google Drive: on Android through the share menu; on PC to your Google Drive folder.",
+    "A friendly reminder to keep a backup of big plans, at most once a day."
   ]
 }
