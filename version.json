@@ -1,0 +1,10 @@
+{
+  "version": "23",
+  "date": "19 Nov 2026",
+  "notes": [
+    "New name: WallCAD. Your saved plans are kept.",
+    "Export DXF (AutoCAD) is now a full AutoCAD 2010 drawing: layers with colours, line types and weights, real hatches, real dimensions, and doors, windows and furniture as blocks.",
+    "3D of a part: tap 3D, then pick an area on the plan or use your selected walls. Or show the whole drawing.",
+    "In 3D, the ALL / PART button switches between the whole house and a part."
+  ]
+}
