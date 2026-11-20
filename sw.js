@@ -2,7 +2,7 @@
    It keeps a copy of the app on the phone so it opens without internet.
    New versions are installed only when the user taps "Update" in the app. */
 const SHELL_CACHE = 'plancad-shell';
-const SHELL_FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
+const SHELL_FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

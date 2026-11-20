@@ -1,12 +1,13 @@
 {
-  "version": "28",
-  "date": "19 Nov 2026",
+  "version": "41",
+  "date": "20 Nov 2026",
   "notes": [
-    "Safer saving: every change is also kept in a second backup database, so plans survive even if the normal browser storage fails.",
-    "Saved \u2713 sign next to the plan name, and a red warning if a save ever fails.",
-    "Earlier versions: Menu \u203a Earlier versions goes back to a copy from a few minutes ago.",
-    "PC: Ctrl+S saves to a real .wallcad file, then saves there again automatically every 2 minutes.",
-    "Save to Google Drive: on Android through the share menu; on PC to your Google Drive folder.",
-    "A friendly reminder to keep a backup of big plans, at most once a day."
+    "3D workspace: walls stand up at their real height and you can Push/Pull the top of a wall to change its height (for a compound wall, parapet or low wall). Room insides are no longer picked. The House 3D view uses the new wall heights too.",
+    "3D workspace with X, Y and Z: tap 3D workspace (or type PP), then drag the top of any rectangle, circle, closed polyline or room up or down. It grows in 3D live while you drag. Type an exact height, start level and material in the bar.",
+    "Your 2D lines and walls show flat in the workspace so you can see what to pull.",
+    "New 3D tab for your own 3D modelling: Presspull (tap inside any closed shape or area), Box, Cylinder, Extrude selected, Edit 3D (height, start level, material) and Remove 3D.",
+    "Model view shows only your 3D shapes (whole drawing, an area or selected items). House 3D shows them together with the house.",
+    "3D shapes go to AutoCAD DXF with elevation and thickness.",
+    "Fillet (F) and Chamfer (CHA) in the Modify tab: round or cut the corner between two lines, like AutoCAD."
   ]
 }
