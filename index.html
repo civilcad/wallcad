@@ -412,7 +412,7 @@ const UBN=/^[A-Za-z0-9_\- ]{1,40}$/;
 function cleanEnt(r,layers){
   if(!r||typeof r!=='object')return null;const t=r.type,ly=typeof r.layer==='string'&&layers.has(r.layer)?r.layer:'0';let e=null;
   if(t==='line'||t==='wall'){const a=fpt(r.a),b=fpt(r.b);if(!a||!b)return null;e={type:t,a,b};if(t==='wall'){e.t=fnum(r.t,0,1,5000);if(!e.t)return null;const wh=fnum(r.h,0,50,30000);if(wh)e.h=wh}}
-  else if(t==='pline'){const pts=fpts(r.pts,2);if(!pts)return null;e={type:t,pts,closed:r.closed===true};if(r.rail===true)e.rail=true}
+  else if(t==='pline'){const pts=fpts(r.pts,2);if(!pts)return null;e={type:t,pts,closed:r.closed===true};if(e.closed&&Array.isArray(r.holes)){const hs=r.holes.slice(0,50).map(h=>fpts(h,3)).filter(Boolean);if(hs.length)e.holes=hs};if(r.rail===true)e.rail=true}
   else if(t==='room'){const pts=fpts(r.pts,3);if(!pts)return null;e={type:t,pts,name:fstr(r.name,60)||'Room'};const lp=fpt(r.lp);if(lp)e.lp=lp;const h=fnum(r.h,0,1,1e5);if(h)e.h=h}
   else if(t==='circle'){const c=fpt(r.c),rr=fnum(r.r,0,0.01,1e8);if(!c||!rr)return null;e={type:t,c,r:rr}}
   else if(t==='arc'){const c=fpt(r.c),rr=fnum(r.r,0,0.01,1e8),a0=fnum(r.a0,null),a1=fnum(r.a1,null);if(!c||!rr||a0===null||a1===null)return null;e={type:t,c,r:rr,a0,a1}}
@@ -524,14 +524,20 @@ const BLOCKS={
  fridge:{name:'Fridge',layer:'furn',w:710,d:710,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),L(-w/2,-d/2+60,w/2,-d/2+60),TX(0,40,'REF',Math.min(w,d)*0.22)]},
  wardrobe:{name:'Wardrobe',layer:'furn',w:1830,d:610,draw:(w,d)=>{const P=[R(-w/2,-d/2,w/2,d/2),L(-w/2+40,0,w/2-40,0)];for(let x=-w/2+200;x<w/2-150;x+=220)P.push(L(x-60,-d/2+110,x+60,d/2-110));return P}},
  stairs:{name:'Stairs',layer:'furn',w:1000,d:3000,draw:(w,d)=>{const P=[R(-w/2,-d/2,w/2,d/2)];const n=Math.max(2,Math.round(d/254));for(let i=1;i<n;i++){const y=-d/2+d*i/n;P.push(L(-w/2,y,w/2,y))}P.push(L(0,-d/2+120,0,d/2-120),L(0,d/2-120,-w*0.12,d/2-120-w*0.2),L(0,d/2-120,w*0.12,d/2-120-w*0.2),TX(0,-d/2+w*0.17,'UP',w*0.16));return P}},
+ lstair:{name:'L-stair + landing',layer:'furn',w:3000,d:3000,draw:(w,d)=>{const g=lstairGeo(w,d),P=[{k:'P',closed:true,pts:g.outline},R(g.land[0],g.land[1],g.land[2],g.land[3])];
+   for(const y of g.f1)P.push(L(g.x0,y,g.x0+g.fw,y));for(const x of g.f2)P.push(L(x,g.y1-g.fw,x,g.y1));
+   const cx=g.x0+g.fw/2,cy=g.y1-g.fw/2,ah=g.fw*0.14;P.push(L(cx,g.y0+120,cx,cy),L(cx,cy,g.x1-120,cy),L(g.x1-120,cy,g.x1-120-ah*1.4,cy+ah),L(g.x1-120,cy,g.x1-120-ah*1.4,cy-ah),TX(cx,g.y0+g.fw*0.2,'UP',g.fw*0.15),TX((g.land[0]+g.land[2])/2,(g.land[1]+g.land[3])/2-g.fw*0.07,'LANDING',g.fw*0.1));return P}},
  desk:{name:'Desk',layer:'furn',w:1220,d:610,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),R(-230,-d/2-470,230,-d/2-60)]},
  tv:{name:'TV unit',layer:'furn',w:1830,d:450,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),R(-w*0.3,-d*0.1,w*0.3,d*0.05)]},
  car:{name:'Car',layer:'furn',w:1800,d:4500,draw:(w,d)=>{const c=w*0.2;return[{k:'P',closed:true,pts:[V(-w/2,-d/2+c),V(-w/2+c,-d/2),V(w/2-c,-d/2),V(w/2,-d/2+c),V(w/2,d/2-c),V(w/2-c,d/2),V(-w/2+c,d/2),V(-w/2,d/2-c)]},{k:'P',closed:true,pts:[V(-w*0.38,d*0.16),V(w*0.38,d*0.16),V(w*0.3,-d*0.2),V(-w*0.3,-d*0.2)]},L(-w*0.38,d*0.16,-w*0.32,d*0.27),L(w*0.38,d*0.16,w*0.32,d*0.27),L(-w*0.32,d*0.27,w*0.32,d*0.27)]}},
  plant:{name:'Plant',layer:'furn',w:500,d:500,draw:(w,d)=>{const r=w/2,P=[C(0,0,r),C(0,0,r*0.25)];for(let i=0;i<6;i++){const a=i/6*TAU;P.push(L(Math.cos(a)*r*0.25,Math.sin(a)*r*0.25,Math.cos(a+0.4)*r*0.9,Math.sin(a+0.4)*r*0.9))}return P}},
  north:{name:'North arrow',layer:'text',w:760,d:760,draw:(w,d)=>{const r=w/2;return[C(0,0,r),{k:'P',closed:true,pts:[V(0,r*0.85),V(r*0.32,-r*0.6),V(0,-r*0.3),V(-r*0.32,-r*0.6)]},TX(0,r*1.3,'N',r*0.5)]}}
 };
-const BLOCK_ORDER=['door','door2','slide','window','opening','bed','sbed','sofa','chair','dining','rtable','tv','wc','basin','shower','bath','kitchen','fridge','wardrobe','stairs','desk','car','plant','north'];
+const BLOCK_ORDER=['door','door2','slide','window','opening','bed','sbed','sofa','chair','dining','rtable','tv','wc','basin','shower','bath','kitchen','fridge','wardrobe','stairs','lstair','desk','car','plant','north'];
 
+function lstairGeo(w,d){const fw=Math.max(700,Math.min(1500,Math.min(w,d)/3)),x0=-w/2,x1=w/2,y0=-d/2,y1=d/2,T=254;
+  const n1=Math.max(2,Math.round((d-fw)/T)),n2=Math.max(2,Math.round((w-fw)/T)),f1=[],f2=[];for(let i=1;i<n1;i++)f1.push(y0+(d-fw)*i/n1);for(let i=1;i<n2;i++)f2.push(x0+fw+(w-fw)*i/n2);
+  return{fw,x0,x1,y0,y1,n1,n2,f1,f2,land:[x0,y1-fw,x0+fw,y1],outline:[V(x0,y0),V(x0+fw,y0),V(x0+fw,y1-fw),V(x1,y1-fw),V(x1,y1),V(x0,y1)]}}
 function blockXf(e){const c=Math.cos(e.rot||0),s=Math.sin(e.rot||0),fx=e.fx||1,fy=e.fy||1;return p=>{const x=p.x*fx,y=p.y*fy;return V(e.p.x+x*c-y*s,e.p.y+x*s+y*c)}}
 function toLocal(e,p){const c=Math.cos(-(e.rot||0)),s=Math.sin(-(e.rot||0)),dx=p.x-e.p.x,dy=p.y-e.p.y;return V((dx*c-dy*s)*(e.fx||1),(dx*s+dy*c)*(e.fy||1))}
 function xfPrim(pr,f,rot){
@@ -587,7 +593,7 @@ function prims(e){let c=primCache.get(e);if(!c){c=computePrims(e);primCache.set(
 function computePrims(e){
   switch(e.type){
     case'line':case'wall':return[{k:'L',a:e.a,b:e.b}];
-    case'pline':return[{k:'P',pts:e.pts,closed:e.closed}];
+    case'pline':return e.holes?[{k:'P',pts:e.pts,closed:e.closed}].concat(e.holes.map(h=>({k:'P',pts:h,closed:true}))):[{k:'P',pts:e.pts,closed:e.closed}];
     case'circle':return[{k:'C',c:e.c,r:e.r}];
     case'arc':return[{k:'A',c:e.c,r:e.r,a0:e.a0,a1:e.a1}];
     case'text':return[{k:'T',p:e.p,s:e.s,h:e.h,rot:e.rot||0,al:'l',v:'b'}];
@@ -661,7 +667,7 @@ function xformEnt(e,f,info){
   switch(e.type){
     case'line':case'wall':e.a=f(e.a);e.b=f(e.b);break;
     case'dim':{const g=dimGeo(e),M=f(lerp(g.a2,g.b2,.5)),o=e.a;if(e.ang!=null){const p0=f(o),p1=f(add(o,mul(g.u,1000)));let na=ang(p0,p1);const q=Math.round(na/(Math.PI/2));if(Math.abs(na-q*Math.PI/2)<1e-7)na=q*Math.PI/2;e.ang=na}e.a=f(e.a);e.b=f(e.b);e.off=dot(sub(M,e.a),perp(dimU(e)));break}
-    case'pline':case'room':e.pts=e.pts.map(f);if(e.lp)e.lp=f(e.lp);if(e.h&&s!==1)e.h*=s;break;
+    case'pline':case'room':e.pts=e.pts.map(f);if(e.holes)e.holes=e.holes.map(h=>h.map(f));if(e.lp)e.lp=f(e.lp);if(e.h&&s!==1)e.h*=s;break;
     case'circle':e.c=f(e.c);e.r*=s;break;
     case'arc':{const P=xfPrim({k:'A',c:e.c,r:e.r,a0:e.a0,a1:e.a1},f,0);Object.assign(e,{c:P.c,r:P.r,a0:P.a0,a1:P.a1});break}
     case'text':e.p=f(e.p);e.rot=(e.rot||0)+(info.rot||0);e.h*=s;break;
@@ -991,8 +997,8 @@ function hatchLayer(){if(!doc.layers.find(l=>l.id==='hatch'))doc.layers.splice(1
 function curHatch(){const p=own(PATS,S.hPat||'')?S.hPat:'diag',F={p,c:HEX.test(S.hCol||'')?S.hCol:'#8a8f98',s:S.hS>0?S.hS:defHatchS(p,false)};if(S.hA)F.a=S.hA;return F}
 function hatchReadBar(){const si=$('#hS'),ai=$('#hA'),ci=$('#hC');if(si){const v=parseLen(si.value);S.hS=si.value.trim()&&v>0?v:0}if(ai){const a=+ai.value;S.hA=ai.value.trim()&&isFinite(a)?((a%360)+360)%360:0}if(ci&&HEX.test(ci.value))S.hCol=ci.value;saveSoon()}
 function rdp(P,eps){if(P.length<3)return P;let dm=0,ix=0;const a=P[0],b=P[P.length-1];for(let i=1;i<P.length-1;i++){const d=distSeg(P[i],a,b);if(d>dm){dm=d;ix=i}}if(dm<=eps)return[a,b];const l=rdp(P.slice(0,ix+1),eps),r=rdp(P.slice(ix),eps);return l.slice(0,-1).concat(r)}
-function detectRegion(q){
-  const vb=visibleBox(),bw=vb.x1-vb.x0,bh=vb.y1-vb.y0,k=1600/Math.max(bw,bh),cw=Math.ceil(bw*k)+3,ch=Math.ceil(bh*k)+3;
+function detectRegion(q,vbIn){
+  const vb=vbIn||visibleBox(),bw=vb.x1-vb.x0,bh=vb.y1-vb.y0,k=1600/Math.max(bw,bh),cw=Math.ceil(bw*k)+3,ch=Math.ceil(bh*k)+3;
   const c=document.createElement('canvas');c.width=cw;c.height=ch;const g=c.getContext('2d',{willReadFrequently:true});g.fillStyle='#fff';g.fillRect(0,0,cw,ch);
   const tp=p=>[(p.x-vb.x0)*k+1,(vb.y1-p.y)*k+1];g.fillStyle='#000';g.strokeStyle='#000';g.lineWidth=2.2;g.lineCap='round';g.lineJoin='round';
   const poly=(P,fill)=>{g.beginPath();P.forEach((p,i)=>{const[x,y]=tp(p);i?g.lineTo(x,y):g.moveTo(x,y)});g.closePath();if(fill)g.fill();g.stroke()};
@@ -1013,14 +1019,16 @@ function detectRegion(q){
   const at=(x,y)=>x>=0&&y>=0&&x<cw&&y<ch&&m[y*cw+x]===1,next=new Map(),key=(x,y)=>y*(cw+2)+x;
   for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){if(!m[y*cw+x])continue;
     if(!at(x,y-1))next.set(key(x,y),[x+1,y]);if(!at(x+1,y))next.set(key(x+1,y),[x+1,y+1]);if(!at(x,y+1))next.set(key(x+1,y+1),[x,y+1]);if(!at(x-1,y))next.set(key(x,y+1),[x,y])}
-  let best=null,ba=0;const seen=new Set();
+  let best=null,ba=0;const seen=new Set(),loopsAll=[];
   for(const[k0]of next){if(seen.has(k0))continue;const L=[];let kk=k0,guard=0;while(!seen.has(kk)&&guard++<2e6){seen.add(kk);const nx=next.get(kk);if(!nx)break;L.push(nx);kk=key(nx[0],nx[1])}
-    if(L.length>3){const a=Math.abs(polyArea(L.map(([x,y])=>V(x,y))));if(a>ba){ba=a;best=L}}}
+    if(L.length>3){loopsAll.push(L);const a=Math.abs(polyArea(L.map(([x,y])=>V(x,y))));if(a>ba){ba=a;best=L}}}
   if(!best)return{err:'Couldn’t find the boundary'};
   let P=best.map(([x,y])=>V((x-1)/k+vb.x0,vb.y1-(y-1)/k));P=rdp(P.concat([P[0]]),1.3/k).slice(0,-1);
   const tol=3.5/k;P=P.map(p=>{let bp=p,bd=tol;for(const c2 of corners){const d=dist(p,c2);if(d<bd){bd=d;bp=c2}}return bp});
   const out=[];for(const p of P){if(!out.length||dist(out[out.length-1],p)>1e-6)out.push(p)}if(out.length>2&&dist(out[0],out[out.length-1])<1e-6)out.pop();
-  if(out.length<3)return{err:'Couldn’t find the boundary'};return{pts:out}}
+  if(out.length<3)return{err:'Couldn’t find the boundary'};
+  const holes=[];for(const L of loopsAll){if(L===best)continue;let H=L.map(([x,y])=>V((x-1)/k+vb.x0,vb.y1-(y-1)/k));if(Math.abs(polyArea(H))*k*k<30)continue;H=rdp(H.concat([H[0]]),1.3/k).slice(0,-1).map(p=>{let bp=p,bd=tol;for(const c2 of corners){const d=dist(p,c2);if(d<bd){bd=d;bp=c2}}return bp});const o2=[];for(const p of H){if(!o2.length||dist(o2[o2.length-1],p)>1e-6)o2.push(p)}if(o2.length>2&&dist(o2[0],o2[o2.length-1])<1e-6)o2.pop();if(o2.length>=3&&inPoly(o2[0],out))holes.push(o2)}
+  return holes.length?{pts:out,holes}:{pts:out}}
 defTool('hatch',{label:'Hatch',icon:'hatch',draw:true,
   prompt(){return st.hm==='draw'?(st.pts.length?'DRAW AREA · tap the next corner · Close when done':'DRAW AREA · tap the first corner of the area to hatch'):'HATCH · pick a pattern, then tap inside a room or closed area, or on a wall'},
   base(){return st.hm==='draw'&&st.pts.length?st.pts[st.pts.length-1]:null},
@@ -1189,15 +1197,19 @@ function offsetPoly(pts,closed,d){const n=pts.length,m=closed?n:n-1,segs=[];for(
   const out=[];for(let i=0;i<n;i++){if(!closed&&i===0){out.push(segs[0][0]);continue}if(!closed&&i===n-1){out.push(segs[m-1][1]);continue}const s1=segs[(i-1+m)%m],s2=segs[i%m],X=lineInt(s1[0],s1[1],s2[0],s2[1]);out.push(X?X.p:s2[0])}return out}
 defTool('offset',{label:'Offset',icon:'offset',draw:true,snap:'none',
   begin(){st.phase='pick'},
-  prompt(){return st.phase==='pick'?`Offset ${fmtLenU(doc.set.offset)}: tap a line, wall, circle or polyline`:'Tap the side to offset to'},
+  prompt(){const e=st.phase==='side'&&entById(st.obj);return st.phase==='pick'?`Offset ${fmtLenU(doc.set.offset)}: tap a line, wall, circle or polyline`:(e&&e.type==='wall'?(S.offW==='centre'?`Tap the side · new wall centre ${fmtLenU(doc.set.offset)} from this wall's centre`:`Tap the side · clear gap ${fmtLenU(doc.set.offset)} from this wall's face`):'Tap the side to offset to')},
+  offMake(e,raw){const d=doc.set.offset,c=clone(e);delete c.g;
+    if(isLin(e)){const n=perp(nrm(sub(e.b,e.a))),sg=Math.sign(dot(sub(raw,e.a),n))||1;let dd=d;if(e.type==='wall'){if(S.offT>0)c.t=S.offT;if(S.offW!=='centre')dd=d+e.t/2+c.t/2}const v=mul(n,dd*sg);c.a=add(e.a,v);c.b=add(e.b,v);return c}
+    if(e.type==='circle'||e.type==='arc'){c.r=dist(raw,e.c)<e.r?e.r-d:e.r+d;return c.r>0?c:null}
+    if(e.type==='pline'){let bi=0,bd=Infinity;const P=e.pts;for(let i=0;i<P.length-(e.closed?0:1);i++){const dd=distSeg(raw,P[i],P[(i+1)%P.length]);if(dd<bd){bd=dd;bi=i}}const a=P[bi],b=P[(bi+1)%P.length],sg=Math.sign(crs(sub(b,a),sub(raw,a)))||1;c.pts=offsetPoly(P,e.closed,d*sg);return c}return null},
+  preview(g){if(st.phase!=='side'||!cursor)return;const e=entById(st.obj);if(!e)return;const c=this.offMake(e,cursor.raw||cursor.p);if(!c)return;if(c.type==='wall'){const u=nrm(sub(c.b,c.a)),n=mul(perp(u),c.t/2);g.line(add(c.a,n),add(c.b,n),true);g.line(sub(c.a,n),sub(c.b,n),true);g.line(add(c.a,n),sub(c.a,n),true);g.line(add(c.b,n),sub(c.b,n),true)}else g.prims(computePrims(c))},
   click(p,raw){if(st.phase==='pick'){const e=pickEnt(raw,e=>['line','wall','circle','arc','pline'].includes(e.type));if(!e)return toast('Tap a line, wall, circle, arc or polyline');st.obj=e.id;sel=new Set([e.id]);st.phase='side';refreshUI();render();return}
-    const e=entById(st.obj);if(!e){st.phase='pick';return}const d=doc.set.offset,c=clone(e);
-    if(isLin(e)){const n=perp(nrm(sub(e.b,e.a))),sg=Math.sign(dot(sub(raw,e.a),n))||1,v=mul(n,d*sg);c.a=add(e.a,v);c.b=add(e.b,v)}
-    else if(e.type==='circle'||e.type==='arc'){c.r=dist(raw,e.c)<e.r?e.r-d:e.r+d;if(c.r<=0)return toast('Too small to offset inward')}
-    else if(e.type==='pline'){let bi=0,bd=Infinity;const P=e.pts;for(let i=0;i<P.length-(e.closed?0:1);i++){const dd=distSeg(raw,P[i],P[(i+1)%P.length]);if(dd<bd){bd=dd;bi=i}}const a=P[bi],b=P[(bi+1)%P.length],sg=Math.sign(crs(sub(b,a),sub(raw,a)))||1;c.pts=offsetPoly(P,e.closed,d*sg)}
-    commit();addEnt(c);changed();sel.clear();st.phase='pick';refreshUI()},
-  bar(){return row(`<input id="inD" class="num" placeholder="Distance ${esc(fmtLenU(doc.set.offset))}">`,btn('setd','Set'),DONE())},
-  act(a){if(a==='setd'){const v=parseLen($('#inD').value);if(v>0){doc.set.offset=v;saveSoon();refreshUI()}else toast('Type a distance')}else if(a==='done'){sel.clear();finish()}}});
+    const e=entById(st.obj);if(!e){st.phase='pick';return}const c=this.offMake(e,raw||p);if(!c)return toast('Too small to offset inward');
+    commit();addEnt(c);changed();sel.clear();st.phase='pick';refreshUI();if(e.type==='wall')toast((S.offW==='centre'?'Wall copied · centre to centre '+fmtLenU(doc.set.offset):'Wall copied · clear gap '+fmtLenU(doc.set.offset)+' between the faces')+' · '+fmtShort(c.t)+' thick',2000)},
+  bar(){return row(`<input id="inD" class="num" placeholder="Distance ${esc(fmtLenU(doc.set.offset))}">`,btn('setd','Set'),btn('wface','Wall: face gap',S.offW!=='centre'?'on':''),btn('wcen','Wall: centre',S.offW==='centre'?'on':''))+row(`<span style="opacity:.8">New wall</span>`,btn('tsame','Same thickness',!(S.offT>0)?'on':''),btn('t45',isFt()?'4½"':'115 mm',S.offT>0&&Math.abs(S.offT-(isFt()?114.3:115))<1?'on':''),btn('t9',isFt()?'9"':'230 mm',S.offT>0&&Math.abs(S.offT-(isFt()?228.6:230))<1?'on':''),`<input id="inT" class="num" style="min-width:86px" placeholder="${isFt()?'inches, e.g. 6':'mm, e.g. 150'}">`,btn('sett','Set'),DONE())},
+  act(a){if(a==='tsame'||a==='t45'||a==='t9'){S.offT=a==='tsame'?0:a==='t45'?(isFt()?114.3:115):(isFt()?228.6:230);saveSoon();refreshUI();render();toast(S.offT?'New wall '+fmtShort(S.offT)+' thick':'New wall: same thickness as the picked wall',1500);return}
+    if(a==='sett'){const raw=$('#inT').value.trim(),bare=/^\d+(\.\d+)?$/.test(raw);const v=bare?(isFt()?parseFloat(raw)*25.4:parseFloat(raw)<5?parseFloat(raw)*1000:parseFloat(raw)):parseLen(raw);if(v>=10&&v<=5000){S.offT=v;saveSoon();refreshUI();render();toast('New wall '+fmtShort(v)+' thick',1500)}else toast('Type a wall thickness, like 4.5" or 115');return}
+    if(a==='wface'||a==='wcen'){S.offW=a==='wcen'?'centre':'face';saveSoon();refreshUI();render();return}if(a==='setd'){const v=parseLen($('#inD').value);if(v>0){doc.set.offset=v;saveSoon();refreshUI()}else toast('Type a distance')}else if(a==='done'){sel.clear();finish()}}});
 
 function cutters(ex,wallMode){const segs=[],circs=[];for(const e of doc.ents){if(e===ex||!lvis(e.layer))continue;
   if(e.type==='line')segs.push([e.a,e.b]);else if(e.type==='wall'){segs.push([e.a,e.b]);if(!wallMode)wallQuadsFor(e).forEach(q=>{for(let i=0;i<4;i++)segs.push([q.pts[i],q.pts[(i+1)%4]])})}
@@ -1395,9 +1407,13 @@ const X3MAT={concrete:['Concrete',[0.72,0.71,0.68],9],plaster:['White plaster',[
 const x3able=e=>(e.type==='pline'&&!e.rail)||e.type==='circle'||e.type==='line';
 const x3cfg=()=>{S.x3=S.x3&&typeof S.x3==='object'?S.x3:{};const c=S.x3;if(!(c.h>0))c.h=3000;if(!isFinite(c.z))c.z=0;if(!own(X3MAT,c.m))c.m='concrete';return c};
 function parseLenS(v){v=String(v||'').trim();const neg=/^-/.test(v);const n=parseLen(neg?v.slice(1):v);return isFinite(n)?(neg?-n:n):NaN}
+function keyhole(outer,holes){let P=polyArea(outer)>0?outer.slice():outer.slice().reverse();if(!holes||!holes.length)return P;
+  for(const h0 of holes){const H=polyArea(h0)<0?h0.slice():h0.slice().reverse();let bi=0,bj=0,bd=Infinity;for(let i=0;i<P.length;i++)for(let j=0;j<H.length;j++){const d=dist(P[i],H[j]);if(d<bd){bd=d;bi=i;bj=j}}
+    const a=P[bi],b=H[bj],u=nrm(sub(b,a)),n=mul(perp(u),0.4),Hs=H.slice(bj).concat(H.slice(0,bj));P=P.slice(0,bi+1).concat([add(b,n)],Hs.slice(1),[Hs[0]].map(v=>sub(v,n)),[sub(a,n)],P.slice(bi+1))}return P}
+function inShape(e,q){if(e.type==='circle')return dist(q,e.c)<e.r;if(!inPoly(q,e.pts))return false;return!(e.holes||[]).some(h=>inPoly(q,h))}
 function x3Build(Z,e,box,cap){const X=e.x3;if(!X)return false;let z0=X.z||0,z1=z0+X.h;if(z1<=z0)return false;if(cap&&z0>=cap)return true;if(cap)z1=Math.min(z1,cap);
   const mat=X3MAT[X.m]||X3MAT.concrete,col=mat[1]||hex3(e.color||layer(e.layer).color);
-  if((e.type==='pline'&&e.closed)||e.type==='circle'){let P=e.type==='circle'?circlePts(e.c,e.r,40):e.pts;if(box&&!(P=clipBox(P,box)))return false;Z.prism(P,z0,z1,col,null,true,mat[2]);return true}
+  if((e.type==='pline'&&e.closed)||e.type==='circle'){let P=e.type==='circle'?circlePts(e.c,e.r,40):keyhole(e.pts,e.holes);if(box&&!(P=clipBox(P,box)))return false;Z.prism(P,z0,z1,col,null,!e.holes,mat[2]);return true}
   const P=e.type==='line'?[e.a,e.b]:e.pts;let any=false;for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],L=dist(a,b);if(L<1)continue;const m=lerp(a,b,.5);if(box&&!inBox(m,box))continue;Z.prism(boxPts(m,Math.atan2(b.y-a.y,b.x-a.x),L,X.t||40),z0,z1,col,null,true,mat[2]);any=true}return any}
 function buildModel3D(sc){const M=new Mesh3();M.lights=[];const o=set3(),ids=sc&&sc.ids,box=sc&&sc.box;let any=0,zTop=0;const bb={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity};const grow=p=>{bb.x0=Math.min(bb.x0,p.x);bb.y0=Math.min(bb.y0,p.y);bb.x1=Math.max(bb.x1,p.x);bb.y1=Math.max(bb.y1,p.y)};
   const nf=doc.floors.length,top=V3.flTop==null?nf-1:Math.min(V3.flTop,nf-1),FLAT=[0.62,0.74,0.9],WALLF=[0.42,0.45,0.5],HL=[0.36,0.62,0.98];
@@ -1405,7 +1421,7 @@ function buildModel3D(sc){const M=new Mesh3();M.lights=[];const o=set3(),ids=sc&
     for(const e of doc.ents){if(!lvis(e.layer))continue;if(ids&&!ids.has(e.id))continue;
       if(e.x3){const hl=V3.ppHl===e.id;const e2=hl?Object.assign({},e,{x3:Object.assign({},e.x3,{m:'colour'}),color:'#5c9ef8'}):e;if(x3Build(Z,e2,ids?null:box,V3.cut>0&&f===top?V3.cut:0)){any++;const b=entBBox(e);grow(V(b.x0,b.y0));grow(V(b.x1,b.y1));zTop=Math.max(zTop,zb+(e.x3.z||0)+e.x3.h)}continue}
       if(f!==doc.fl&&f!==top)continue;
-      if(((e.type==='pline'&&e.closed&&!e.rail&&e.layer!=='hatch'))||e.type==='circle'){let P=e.type==='circle'?circlePts(e.c,e.r,40):e.pts;if(box&&!(P=clipBox(P,box)))continue;Z.prism(P,2,6,V3.ppHl===e.id?HL:FLAT,null,true,0);for(let i=0;i<P.length;i++){const a2=P[i],b2=P[(i+1)%P.length],L=dist(a2,b2);if(L<1)continue;Z.prism(boxPts(lerp(a2,b2,.5),Math.atan2(b2.y-a2.y,b2.x-a2.x),L,scale),6,9,[0.18,0.36,0.62],null,false,0)}P.forEach(grow);any++}
+      if(((e.type==='pline'&&e.closed&&!e.rail&&e.layer!=='hatch'))||e.type==='circle'){let P=e.type==='circle'?circlePts(e.c,e.r,40):keyhole(e.pts,e.holes);if(box&&!(P=clipBox(P,box)))continue;Z.prism(P,2,6,V3.ppHl===e.id?HL:FLAT,null,true,0);for(let i=0;i<P.length;i++){const a2=P[i],b2=P[(i+1)%P.length],L=dist(a2,b2);if(L<1)continue;Z.prism(boxPts(lerp(a2,b2,.5),Math.atan2(b2.y-a2.y,b2.x-a2.x),L,scale),6,9,[0.18,0.36,0.62],null,false,0)}P.forEach(grow);any++}
       else if(e.type==='line'||(e.type==='pline'&&!e.closed)){const P=e.type==='line'?[e.a,e.b]:e.pts;for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],L=dist(a,b);if(L<1)continue;const m=lerp(a,b,.5);if(box&&!inBox(m,box))continue;Z.prism(boxPts(m,Math.atan2(b.y-a.y,b.x-a.x),L,scale),2,8,[0.25,0.28,0.33],null,false,0);grow(a);grow(b)}}}
     const fh=floorH(f,o);for(const q of wallData().quads){if(!lvis(q.w.layer))continue;if(ids&&!ids.has(q.w.id))continue;let P=q.pts;if(box&&!(P=clipBox(P,box)))continue;const wh=q.w.h||fh;Z.prism(P,0,V3.cut>0&&f===top?Math.min(wh,V3.cut):wh,V3.ppHl===q.w.id?HL:[0.9,0.89,0.86],null,true,1);P.forEach(grow);zTop=Math.max(zTop,zb+wh);any++}})}
   if(!isFinite(bb.x0))Object.assign(bb,{x0:-3000,y0:-3000,x1:3000,y1:3000});M.zb=0;
@@ -1431,10 +1447,10 @@ function x3Act(a){if(a==='x3set'){const c=x3ReadBar();refreshUI();toast('3D: hei
 defTool('pp',{label:'3D workspace',icon:'pp',draw:true,snap:'none',
   prompt(){const c=x3cfg();return'PRESSPULL · tap inside a closed shape or area (or on a line) to make it 3D · height '+fmtShort(c.h)+(c.z?' from '+fmtShort(c.z):'')},
   click(p,raw){const c=x3ReadBar(),q=raw||p;let best=null,ba=Infinity;
-    for(const e of doc.ents){if(!lvis(e.layer)||llock(e.layer))continue;if(!((e.type==='pline'&&e.closed)||e.type==='circle'||e.type==='room'))continue;const inside=e.type==='circle'?dist(q,e.c)<e.r:inPoly(q,e.pts);if(!inside)continue;const A=e.type==='circle'?Math.PI*e.r*e.r:Math.abs(polyArea(e.pts));if(A<ba){ba=A;best=e}}
+    for(const e of doc.ents){if(!lvis(e.layer)||llock(e.layer))continue;if(!((e.type==='pline'&&e.closed)||e.type==='circle'||e.type==='room'))continue;if(!(e.type==='room'?inPoly(q,e.pts):inShape(e,q)))continue;const A=e.type==='circle'?Math.PI*e.r*e.r:Math.abs(polyArea(e.pts));if(A<ba){ba=A;best=e}}
     if(best){commit();let t=best;if(best.type==='room'){t=addEnt({type:'pline',closed:true,pts:best.pts.map(v=>V(v.x,v.y)),layer:best.layer})}x3Apply(t,c);changed();toast((best.type==='room'?'Room shape':'Shape')+' made 3D · '+fmtLenU(c.h),1500);return}
     const ln=pickEnt(q,e=>e.type==='line'||(e.type==='pline'&&!e.closed&&!e.rail));if(ln){commit();x3Apply(ln,c);changed();toast('Line stands up '+fmtLenU(c.h),1500);return}
-    const r=detectRegion(q);if(r.err)return toast('Tap inside a closed shape, an area closed by lines or walls, or on a line',3000);commit();const e=addEnt({type:'pline',closed:true,pts:r.pts});x3Apply(e,c);changed();toast('Area made 3D · '+fmtLenU(c.h)+' · '+fmtArea(Math.abs(polyArea(r.pts))),2000)},
+    const r=detectRegion(q);if(r.err)return toast('Tap inside a closed shape, an area closed by lines or walls, or on a line',3000);commit();const e=addEnt({type:'pline',closed:true,pts:r.pts});if(r.holes)e.holes=r.holes;x3Apply(e,c);changed();toast('Area made 3D · '+fmtLenU(c.h)+' · '+fmtArea(Math.abs(polyArea(r.pts))),2000)},
   bar(){return x3Bar()},act(a){x3Act(a)}});
 defTool('box3',{label:'Box',icon:'box3',draw:true,base:base0,
   prompt(){return st.pts.length?'BOX · tap the opposite corner':'BOX · tap the first corner of the box (height '+fmtShort(x3cfg().h)+')'},
@@ -1470,11 +1486,15 @@ function ppPick(cx,cy){if(V3.elev||V3.mode==='walk')return null;const R=v3ray(cx
   const fh=floorH(doc.fl,set3());for(const q of wallData().quads){const w=q.w;if(!lvis(w.layer)||llock(w.layer))continue;const z=zb+(w.h||fh);if(Math.abs(R.d[2])<1e-6)continue;const t=(z-R.E[2])/R.d[2];if(t<=0)continue;const p=V(R.E[0]+R.d[0]*t,R.E[1]+R.d[1]*t);if(!inPoly(p,q.pts))continue;if(!best||t<best.t)best={e:w,t,q:p,z,wall:true}}
   for(const e of doc.ents){if(!lvis(e.layer)||llock(e.layer))continue;const closed=(e.type==='pline'&&e.closed&&!e.rail&&e.layer!=='hatch')||e.type==='circle';if(!closed)continue;
     const z=zb+(e.x3?(e.x3.z||0)+e.x3.h:0);if(Math.abs(R.d[2])<1e-6)continue;const t=(z-R.E[2])/R.d[2];if(t<=0)continue;const q=V(R.E[0]+R.d[0]*t,R.E[1]+R.d[1]*t);
-    const inside=e.type==='circle'?dist(q,e.c)<e.r:inPoly(q,e.pts);if(!inside)continue;if(!best||t<best.t)best={e,t,q,z}}
+    if(!inShape(e,q))continue;if(!best||t<best.t)best={e,t,q,z}}
+  if(!best&&Math.abs(R.d[2])>1e-6){const t=(zb-R.E[2])/R.d[2];if(t>0)best={region:true,t,q:V(R.E[0]+R.d[0]*t,R.E[1]+R.d[1]*t),z:zb}}
   return best}
 function ppHeightAt(cx,cy,q,z0){const R=v3ray(cx,cy),w0=[R.E[0]-q.x,R.E[1]-q.y,R.E[2]-z0],a=R.d[0]**2+R.d[1]**2+R.d[2]**2,b=R.d[2],dd=R.d[0]*w0[0]+R.d[1]*w0[1]+R.d[2]*w0[2],ee=w0[2],den=a-b*b;if(Math.abs(den)<1e-9)return null;return(a*ee-b*dd)/den}
 let ppRAF=0;function ppRebuild(){if(ppRAF)return;ppRAF=requestAnimationFrame(()=>{ppRAF=0;v3rebuild()})}
-function ppDown(ev){if(!V3.only||!PPW.on||ev.button!==0)return false;const h=ppPick(ev.clientX,ev.clientY);if(!h)return false;let e=h.e;const s0=snapshot();
+function ppRegionBox(){let bb={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity};for(const e of doc.ents){if(!lvis(e.layer))continue;const b=entBBox(e);if(!isFinite(b.x0))continue;bb.x0=Math.min(bb.x0,b.x0);bb.y0=Math.min(bb.y0,b.y0);bb.x1=Math.max(bb.x1,b.x1);bb.y1=Math.max(bb.y1,b.y1)}const p=Math.max(500,(bb.x1-bb.x0)*0.02);return{x0:bb.x0-p,y0:bb.y0-p,x1:bb.x1+p,y1:bb.y1+p}}
+function ppDown(ev){if(!V3.only||!PPW.on||ev.button!==0)return false;const h=ppPick(ev.clientX,ev.clientY);if(!h)return false;const s0=snapshot();
+  if(h.region){const vb=ppRegionBox();if(!isFinite(vb.x0)||!inBox(h.q,vb))return false;if(doc.ents.some(e=>e.type==='room'&&lvis(e.layer)&&inPoly(h.q,e.pts)))return false;const r=detectRegion(h.q,vb);if(r.err)return false;{const Q=wallData().quads;let nw=0;for(const v of r.pts){if(Q.some(q=>{for(let i=0;i<4;i++)if(distSeg(v,q.pts[i],q.pts[(i+1)%4])<8)return true;return false}))nw++}if(nw>r.pts.length*0.5)return false}const ne=addEnt({type:'pline',closed:true,pts:r.pts});if(r.holes)ne.holes=r.holes;h.e=ne;invalidate()}
+  let e=h.e;
   if(h.wall){const fh=floorH(doc.fl,set3()),h0=e.h||fh,off=ppHeightAt(ev.clientX,ev.clientY,h.q,0);PPW.drag={id:e.id,wall:true,s0,h0,fh,q:h.q,off:off==null?h.z:off,pid:ev.pointerId};PPW.last=e.id;V3.ppHl=e.id;try{$('#cv3').setPointerCapture(ev.pointerId)}catch(_){}ppShow(e);ppRebuild();return true}
   if(e.type==='room'){e=addEnt({type:'pline',closed:true,pts:e.pts.map(v=>V(v.x,v.y)),layer:e.layer})}const c=x3cfg();
   if(!e.x3)e.x3={h:1,z:0,m:c.m};const zb=floorBase(doc.fl,set3()),base=zb+(e.x3.z||0),h0=e.x3.h,top0=base+h0;const off=ppHeightAt(ev.clientX,ev.clientY,h.q,0);
@@ -6265,7 +6285,7 @@ function makeSample(){
 
 
 /* ================= updates & offline ================= */
-const APP_VERSION='41';
+const APP_VERSION='45';
 const SHELL_CACHE='plancad-shell';
 const SHELL_FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png'];
 const VRX=/^\d{1,4}(\.\d{1,4}){0,3}$/;
@@ -6360,7 +6380,7 @@ function fpGrid(nf){const bb={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity}
     withFloor(f,()=>{for(const q of wallData().quads){fillPoly(sol,q.pts);fillPoly(solW,q.pts)}
       for(const e of doc.ents){if(e.type==='block'&&BLOCKS[e.b]&&BLOCKS[e.b].cut){let t=doc.set.wallT;for(const w of doc.ents)if(w.type==='wall'&&distSeg(e.p,w.a,w.b)<=w.t/2+5){t=w.t;break}fillPoly(sol,boxPts(e.p,e.rot||0,e.w,t));fillPoly(solW,boxPts(e.p,e.rot||0,e.w,t))}
         else if(e.type==='pline'&&e.rail){for(let k=0;k<e.pts.length-(e.closed?0:1);k++){const a=e.pts[k],b=e.pts[(k+1)%e.pts.length];fillSeg(sol,a,b,cs*0.75);fillSeg(rail,a,b,cs*1.6)}}
-        else if(e.type==='block'&&e.b==='stairs'){const P=boxPts(e.p,e.rot||0,e.w,e.d);fillPoly(st,P);stl.push(P)}}});
+        else if(e.type==='block'&&e.b==='stairs'){const P=boxPts(e.p,e.rot||0,e.w,e.d);fillPoly(st,P);stl.push(P)}else if(e.type==='block'&&e.b==='lstair'){const P=lstairGeo(e.w,e.d).outline.map(blockXf(e));fillPoly(st,P);stl.push(P)}}});
     const flood=S0=>{const out=new Uint8Array(N),qu=[];const push=k=>{if(!out[k]&&!S0[k]){out[k]=1;qu.push(k)}};
       for(let i=0;i<nx;i++){push(i);push((ny-1)*nx+i)}for(let j=0;j<ny;j++){push(j*nx);push(j*nx+nx-1)}
       while(qu.length){const k=qu.pop(),i=k%nx,j=(k-i)/nx;if(i>0)push(k-1);if(i<nx-1)push(k+1);if(j>0)push(k-nx);if(j<ny-1)push(k+nx)}
@@ -6470,6 +6490,10 @@ function build3D(cutAt,ceil,sc){
         if(outN&&r3.chajja>0&&e.b!=='opening'&&H>=topZ+60){const cz=Math.min(topZ+120,H-75),cw=e.w+300,c=add(e.p,mul(outN,t/2+r3.chajja/2));Z.prism(boxPts(c,ang,cw,r3.chajja),cz,cz+75,BC,WC,true,1,1)}}
       // furniture
       for(const e of doc.ents){if(e.type!=='block'||!lvis(e.layer))continue;const B=BLOCKS[e.b];if(!B||B.cut||e.b==='north')continue;if(ids?!ids.has(e.id):box&&!inBox(e.p,box))continue;any++;const xf=blockXf(e),cfg=FURN3[e.b]||[600,'wood'],col=C3[cfg[1]],h=cfg[0],fm=cfg[1]==='wood'?5:0;
+        if(e.b==='lstair'){const g=lstairGeo(e.w,e.d),N=g.n1+g.n2+1,rise=(FH+floorSlab(f))/N,SC=[0.8,0.78,0.74],TC=[0.62,0.6,0.58];
+          for(let i=0;i<g.n1;i++){const a=g.y0+(g.y1-g.fw-g.y0)*i/g.n1,b=g.y0+(g.y1-g.fw-g.y0)*(i+1)/g.n1;Z.prism([V(g.x0,a),V(g.x0+g.fw,a),V(g.x0+g.fw,b),V(g.x0,b)].map(xf),0,rise*(i+1),SC,TC,true,9,9)}
+          Z.prism([V(g.land[0],g.land[1]),V(g.land[2],g.land[1]),V(g.land[2],g.land[3]),V(g.land[0],g.land[3])].map(xf),0,rise*(g.n1+1),SC,[0.66,0.64,0.6],true,9,9);
+          for(let j=0;j<g.n2;j++){const a=g.x0+g.fw+(g.x1-g.x0-g.fw)*j/g.n2,b=g.x0+g.fw+(g.x1-g.x0-g.fw)*(j+1)/g.n2;Z.prism([V(a,g.y1-g.fw),V(b,g.y1-g.fw),V(b,g.y1),V(a,g.y1)].map(xf),0,rise*(g.n1+2+j),SC,TC,true,9,9)}continue}
         if(e.b==='stairs'){const n=Math.max(2,Math.round(e.d/254)),rise=(FH+floorSlab(f))/n;for(let i=0;i<n;i++){const y0=-e.d/2+e.d*i/n,y1=-e.d/2+e.d*(i+1)/n;Z.prism([V(-e.w/2,y0),V(e.w/2,y0),V(e.w/2,y1),V(-e.w/2,y1)].map(xf),0,rise*(i+1),[0.8,0.78,0.74],[0.62,0.6,0.58],true,9,9)}continue}
         if(furn3D(Z,e,xf,cutAt>0&&f===top?H-20:0,cutAt>0&&f===top?(q,z,r)=>M.lights.push([q.x,q.y,z+zb,r]):null))continue;
         const cl=B.draw(e.w,e.d||e.w).filter(p=>(p.k==='P'&&p.closed)||p.k==='C');if(!cl.length){Z.prism(boxPts(e.p,e.rot||0,e.w,e.d||e.w),0,h,col,null,true,fm);continue}
