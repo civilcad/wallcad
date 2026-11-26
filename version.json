@@ -1,12 +1,12 @@
 {
-  "version": "51",
+  "version": "59",
   "date": "20 Nov 2026",
   "notes": [
-    "My tools panel scrolls: when you add many tools, swipe up and down (sideways when it lies flat) to reach them all. The ⠿ handle and the ⇅ ✎ buttons stay in place.",
-    "Tool names under every icon: in the side tool bar (Left or Right), in tab panels on phones and in the My tools panel.",
-    "Tab panels work on phones and tablets too: press and hold a tab, then drag it to the left, right or top. Press and hold without moving to pick a place from a list.",
-    "My tools panel buttons now each have their own box.",
-    "Tab panels now also work when WallCAD runs in a smaller window (like inside Claude). Right-click a tab to place its tools at the Left, Top, Right or Floating without dragging.",
-    "Every tool button inside a tab (Line, Circle, Move, Trim…) now has its own box, so the tools look clearly separate."
+    "My tools panel: Properties, Zoom fit, Undo, Redo, Layers and Erase removed (they are in the top bar or select options). Added Chamfer, Corner, Join, Explode, Aligned and Angular dimension, Room, Measure, Colour and Railing.",
+    "My tools panel: every most-used tool is now added to your panel too, even if you had changed your list before (your own extra tools stay). Tap ✎ to remove any.",
+    "My tools panel now starts with all the most used tools: Line, Polyline, Wall, Rectangle, Circle, Arc, Offset, Trim, Extend, Fillet, Move, Copy, Rotate, Mirror, Scale, Erase, Hatch, Text, Dimension, Quick dim, Undo, Redo, Zoom fit, Layers and Properties. Scroll it; tap ✎ to remove or add tools.",
+    "The Pan (hand) button is now with the zoom buttons at the right side of the drawing, on phone and PC. Tap it to move the sheet, tap again to stop.",
+    "Selecting like AutoCAD on a PC: click an object to select it; click empty space and click again for a box (left to right = inside only, right to left = touching); press and drag to draw a free area (lasso).",
+    "New Pan (hand) tool next to Select (or type P) to move the sheet. The middle or right mouse button, or Space + drag, also pan."
   ]
 }
