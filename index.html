@@ -748,7 +748,7 @@ function wallQuadsFor(w){return wallData().quads.filter(q=>q.w===w)}
 /* bbox */
 function primsBBox(P,bb){
   bb=bb||{x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity};const ex=p=>{if(p.x<bb.x0)bb.x0=p.x;if(p.y<bb.y0)bb.y0=p.y;if(p.x>bb.x1)bb.x1=p.x;if(p.y>bb.y1)bb.y1=p.y};
-  for(const pr of P){if(pr.k==='L'){ex(pr.a);ex(pr.b)}else if(pr.k==='P')pr.pts.forEach(ex);else if(pr.k==='C'||pr.k==='A'){ex(V(pr.c.x-pr.r,pr.c.y-pr.r));ex(V(pr.c.x+pr.r,pr.c.y+pr.r))}else if(pr.k==='T'){const w=textW(pr.s,pr.h,pr.b);ex(V(pr.p.x-w,pr.p.y-pr.h));ex(V(pr.p.x+w,pr.p.y+pr.h))}}
+  for(const pr of P){if(pr.k==='L'){ex(pr.a);ex(pr.b)}else if(pr.k==='P')pr.pts.forEach(ex);else if(pr.k==='C'||pr.k==='A'){ex(V(pr.c.x-pr.r,pr.c.y-pr.r));ex(V(pr.c.x+pr.r,pr.c.y+pr.r))}else if(pr.k==='T'){const w=textW(pr.s,pr.h,pr.b),h=pr.h,x0=(pr.al==='c'?-w/2:0)-h*0.1,x1=x0+w+h*0.2,yb=pr.v==='m'?-h*0.35:0,y0=yb-h*0.3,y1=yb+h*0.9,r=pr.rot||0,c=Math.cos(r),sn=Math.sin(r);for(const[x,y]of[[x0,y0],[x1,y0],[x1,y1],[x0,y1]])ex(V(pr.p.x+x*c-y*sn,pr.p.y+x*sn+y*c))}}
   return bb}
 const bbCache=new WeakMap();
 function entBBox(e){let b=primCache.get(e)&&bbCache.get(e);if(b)return b;b=primsBBox(prims(e));if(e.type==='wall'){b.x0-=e.t;b.y0-=e.t;b.x1+=e.t;b.y1+=e.t}if(e.type==='block'){const f=blockXf(e),hw=e.w/2,hd=e.d/2;b=primsBBox([{k:'P',pts:[f(V(-hw,-hd)),f(V(hw,-hd)),f(V(hw,hd)),f(V(-hw,hd))]}],b)}bbCache.set(e,b);return b}
@@ -2172,8 +2172,8 @@ const scaleList=()=>isFt()?SCALES_FT:SCALES_M.map(s=>[s,'1:'+s]);
 const scaleLabel=s=>{const f=scaleList().find(x=>x[0]===s);return f?f[1]:'1:'+Math.round(s)};
 function selBBox(){let b={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity};for(const id of sel){const e=entById(id);if(!e)continue;const q=entBBox(e);if(!isFinite(q.x0))continue;b.x0=Math.min(b.x0,q.x0);b.y0=Math.min(b.y0,q.y0);b.x1=Math.max(b.x1,q.x1);b.y1=Math.max(b.y1,q.y1)}return isFinite(b.x0)?b:null}
 function pdfLayout(o){let[pw,ph]=PAPERS[o.paper]||PAPERS.A4;const bb=o.areaMode==='sel'?selBBox():o.areaMode==='screen'?visibleBox():o.areaMode==='pick'&&printArea?Object.assign({},printArea):extents();if(!bb||!(bb.x1-bb.x0>1)||!(bb.y1-bb.y0>1))return null;
-  const plain=!!o.plain,M=plain?5:10,TB=plain?0:17;let orient=o.orient;if(orient!=='landscape'&&orient!=='portrait'){const fitOf=(w,h)=>Math.min((w-2*M-4)/(bb.x1-bb.x0),(h-2*M-TB-4)/(bb.y1-bb.y0));orient=fitOf(ph,pw)>fitOf(pw,ph)?'landscape':'portrait'}if(orient==='landscape')[pw,ph]=[ph,pw];const area={x:M,y:M+TB,w:pw-2*M,h:ph-2*M-TB};
-  const fill=o.scale==='fill',pad=fill?4:12,bw=bb.x1-bb.x0,bh=bb.y1-bb.y0,need=Math.max(bw/(area.w-pad),bh/(area.h-pad));let S0=+o.scale;if(fill){S0=need}else if(o.scale==='fit'||!S0){const l=scaleList();S0=(l.find(x=>x[0]>=need)||l[l.length-1])[0];if(need>S0)S0=need}return{pw,ph,M,TB,area,bb,S:S0,fits:need<=S0+1e-9,win:o.areaMode==='screen'||o.areaMode==='pick',orient,fill,plain}}
+  const plain=!!o.plain,mg=[3,5,10].includes(+o.margin)?+o.margin:5,M=mg,TB=plain?0:(mg<10?14:17);let orient=o.orient;if(orient!=='landscape'&&orient!=='portrait'){const fitOf=(w,h)=>Math.min((w-2*M-4)/(bb.x1-bb.x0),(h-2*M-TB-4)/(bb.y1-bb.y0));orient=fitOf(ph,pw)>fitOf(pw,ph)?'landscape':'portrait'}if(orient==='landscape')[pw,ph]=[ph,pw];const area={x:M,y:M+TB,w:pw-2*M,h:ph-2*M-TB};
+  const fill=o.scale==='fill',pad=fill?2:12,bw=bb.x1-bb.x0,bh=bb.y1-bb.y0,need=Math.max(bw/(area.w-pad),bh/(area.h-pad));let S0=+o.scale;if(fill){S0=need}else if(o.scale==='fit'||!S0){const l=scaleList();S0=(l.find(x=>x[0]>=need)||l[l.length-1])[0];if(need>S0)S0=need}return{pw,ph,M,TB,area,bb,S:S0,fits:need<=S0+1e-9,win:o.areaMode==='screen'||o.areaMode==='pick',orient,fill,plain}}
 function buildPDF(o){
   const Lp=pdfLayout(o);if(!Lp)return null;const ONLY=o.areaMode==='sel'?new Set(sel):null;const{pw,ph,M,TB,area,bb,S,win}=Lp;const k=72/25.4;const ccx=(bb.x0+bb.x1)/2,ccy=(bb.y0+bb.y1)/2;
   const X=x=>((area.x+area.w/2)+(x-ccx)/S)*k,Y=y=>((area.y+area.h/2)+(y-ccy)/S)*k;const f=n=>(Math.round(n*100)/100).toFixed(2).replace(/\.?0+$/,'')||'0';
@@ -2204,7 +2204,7 @@ function buildPDF(o){
   const T2=(x,y,s,sz,b,gray)=>`BT /${b?'F2':'F1'} ${f(sz)} Tf ${gray?'0.4 0.4 0.4':'0 0 0'} rg 1 0 0 1 ${f(x*k)} ${f(y*k)} Tm ${pstr(s)} Tj ET`;
   if(!Lp.plain){out.push(`0 0 0 RG 0.8 w ${f(M*k)} ${f(M*k)} ${f((pw-2*M)*k)} ${f((ph-2*M)*k)} re S`);out.push(`0.6 w ${f(M*k)} ${f((M+TB)*k)} m ${f((pw-M)*k)} ${f((M+TB)*k)} l S`);
   const cols=[['PROJECT',o.title||doc.name,0.40],['DRAWN BY',o.by||'-',0.18],['DATE',new Date().toLocaleDateString(),0.14],['SCALE',scaleLabel(S),0.17],['UNITS',isFt()?'ft-in':'m',0.11]];let cx=M;const tw2=pw-2*M;
-  cols.forEach(([lab,val,fr],i)=>{const w=tw2*fr;if(i)out.push(`0.4 w ${f(cx*k)} ${f(M*k)} m ${f(cx*k)} ${f((M+TB)*k)} l S`);out.push(T2(cx+2.5,M+TB-5.5,lab,5.5,false,true));let v=String(val);const mx=Math.floor((w-5)/(i===0?2.3:2.0));if(v.length>mx)v=v.slice(0,mx-3)+'...';out.push(T2(cx+2.5,M+4.5,v,i===0?11:9,true));cx+=w});
+  cols.forEach(([lab,val,fr],i)=>{const w=tw2*fr;if(i)out.push(`0.4 w ${f(cx*k)} ${f(M*k)} m ${f(cx*k)} ${f((M+TB)*k)} l S`);out.push(T2(cx+2.5,M+TB-(TB<17?4.5:5.5),lab,5.5,false,true));let v=String(val);const mx=Math.floor((w-5)/(i===0?2.3:2.0));if(v.length>mx)v=v.slice(0,mx-3)+'...';out.push(T2(cx+2.5,M+(TB<17?3.5:4.5),v,TB<17?(i===0?10:8.5):(i===0?11:9),true));cx+=w});
   out.push(T2(pw-M-38,M+TB+2.5,'Drawn with WallCAD',5,false,true));}
   const content=out.join('\n');
   const objs=[null,'<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>',`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${f(pw*k)} ${f(ph*k)}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>`,`<< /Length ${content.length} >>\nstream\n${content}\nendstream`,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
@@ -2244,20 +2244,21 @@ function openExport(){
    <label>Print colors</label><select id="eM"><option value="0" ${!s0.mono?'selected':''}>Colorful (as drawn)</option><option value="1" ${s0.mono?'selected':''}>Black &amp; white (lines black, fills grey)</option></select>
    <label>What to print</label><select id="eA"><option value="all" ${expMode==='all'?'selected':''}>Whole drawing</option><option value="screen" ${expMode==='screen'?'selected':''}>What's on screen now</option>${sel.size?`<option value="sel" ${expMode==='sel'?'selected':''}>Only the selected objects (${sel.size})</option>`:''}<option value="pick" ${expMode==='pick'?'selected':''}>${printArea?'Picked area ('+esc(fmtShort(printArea.x1-printArea.x0))+' × '+esc(fmtShort(printArea.y1-printArea.y0))+')':'Pick an area on the drawing…'}</option></select>
    ${printArea?`<div class="row" style="margin-top:6px">${btn('repick','Pick a different area')}</div>`:''}
+   <label>Page margin</label><select id="eG"><option value="5" ${!s0.pdfMargin||+s0.pdfMargin===5?'selected':''}>Narrow (5 mm)</option><option value="3" ${+s0.pdfMargin===3?'selected':''}>Very narrow (3 mm)</option><option value="10" ${+s0.pdfMargin===10?'selected':''}>Normal (10 mm)</option></select>
    <label>Border and title box</label><select id="eF"><option value="show" ${!(s0.plainPdf||expMode==='sel')?'selected':''}>Show (border, project, drawn by, date, scale)</option><option value="hide" ${s0.plainPdf||expMode==='sel'?'selected':''}>Hide · only the drawing on the page</option></select>
    <label>Scale</label><select id="eS"><option value="fill" ${s0.scale==='fill'||!s0.scale||s0.scale==='fit'&&!s0.fitChosen?'selected':''}>Fill the whole page</option><option value="fit" ${s0.scale==='fit'&&s0.fitChosen?'selected':''}>Fit to page (best standard scale)</option>${scaleList().map(([v,l])=>`<option value="${v}" ${String(v)===String(s0.scale)?'selected':''}>${esc(l)}</option>`).join('')}</select>
    <div class="hint" id="eInfo"></div><div id="ePrevW" style="margin:8px 0;text-align:center;background:#3a3f47;border-radius:8px;padding:10px"><canvas id="ePrev" style="background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.5);max-width:100%;cursor:zoom-in" aria-label="Page preview"></canvas><div class="hint" style="color:#cfd6df">Preview of the page · tap to see it big</div></div>
    <label>Title</label><input id="eT" value="${esc(expTitle||docTitle())}"><label>Drawn by</label><input id="eB" value="${esc(s0.by||'')}">
    <div class="row" style="margin-top:14px">${btn('go',icon('share')+' Save / share PDF','pri')}</div><div class="hint">The PDF is vector, so it stays sharp when zoomed or printed. Hidden layers are left out.</div>`,s=>{
-    const val=()=>({plain:s.querySelector('#eF').value==='hide',areaMode:s.querySelector('#eA').value,paper:s.querySelector('#eP').value,orient:s.querySelector('#eO').value,scale:s.querySelector('#eS').value,title:s.querySelector('#eT').value,by:s.querySelector('#eB').value,mono:s.querySelector('#eM').value==='1'});
+    const val=()=>({margin:+s.querySelector('#eG').value,plain:s.querySelector('#eF').value==='hide',areaMode:s.querySelector('#eA').value,paper:s.querySelector('#eP').value,orient:s.querySelector('#eO').value,scale:s.querySelector('#eS').value,title:s.querySelector('#eT').value,by:s.querySelector('#eB').value,mono:s.querySelector('#eM').value==='1'});
     let pvT=0;const info=()=>{const o=val(),L2=pdfLayout(o);s.querySelector('#eInfo').textContent=L2?(L2.fits?`Prints at ${scaleLabel(L2.S)} · ${L2.orient==='landscape'?'Landscape':'Portrait'}${L2.fill?' · fills the page':''}.`:`Too big for this paper at this scale. Pick a smaller scale or bigger paper.`):'';clearTimeout(pvT);pvT=setTimeout(()=>{try{pdfPreview(o,s.querySelector('#ePrev'),Math.min(300,s.clientWidth-60))}catch(e){}},60)};
     s.querySelector('#ePrev').onclick=()=>pdfPreviewBig(val());s.querySelectorAll('input').forEach(x=>x.addEventListener('change',info));
-    const keep=()=>{const o=val();Object.assign(doc.set,{plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});expTitle=o.title;saveSoon()};
+    const keep=()=>{const o=val();Object.assign(doc.set,{pdfMargin:o.margin,plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});expTitle=o.title;saveSoon()};
     const pick=()=>{keep();closeSheet();setTool('printarea')};
     s.querySelectorAll('select').forEach(x=>x.onchange=info);
     s.querySelector('#eA').onchange=()=>{expMode=s.querySelector('#eA').value;if(expMode==='pick'&&!printArea)return pick();if(expMode==='sel')s.querySelector('#eF').value='hide';info()};
     const rp=s.querySelector('[data-act=repick]');if(rp)rp.onclick=pick;info();
-    s.querySelector('[data-act=go]').onclick=()=>{const o=val();Object.assign(doc.set,{plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});saveSoon();if(o.areaMode==='sel'&&!sel.size)return toast('Select the objects to print first');const r=buildPDF(o);if(!r)return toast(o.areaMode==='pick'?'Pick an area first':'Nothing to export');closeSheet();saveFile(safeName(o.title)+'.pdf',new Blob([r.bytes],{type:'application/pdf'}),'application/pdf')}})}
+    s.querySelector('[data-act=go]').onclick=()=>{const o=val();Object.assign(doc.set,{pdfMargin:o.margin,plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});saveSoon();if(o.areaMode==='sel'&&!sel.size)return toast('Select the objects to print first');const r=buildPDF(o);if(!r)return toast(o.areaMode==='pick'?'Pick an area first':'Nothing to export');closeSheet();saveFile(safeName(o.title)+'.pdf',new Blob([r.bytes],{type:'application/pdf'}),'application/pdf')}})}
 
 /* DXF (AutoCAD 2010 format: layers, colours, line types, real hatches, blocks and dimensions) */
 const DXF_TPL=`0
@@ -6468,7 +6469,7 @@ function makeSample(){
 
 
 /* ================= updates & offline ================= */
-const APP_VERSION='64';
+const APP_VERSION='66';
 const SHELL_CACHE='plancad-shell';
 const SHELL_FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png'];
 const VRX=/^\d{1,4}(\.\d{1,4}){0,3}$/;
@@ -6487,6 +6488,8 @@ async function fetchRemote(){const r=await fetch('version.json?t='+Date.now(),{c
   return{version:v,notes,date:String(j.date||'').slice(0,20)}}
 /* ===== What's new after an update (v62) ===== */
 const CHANGES=[
+ ['66',['PDF and Zoom fit: texts no longer add hidden empty space around the drawing, so the plan prints much bigger on the page.']],
+ ['65',['Export PDF: narrow page margins (5 mm by default, 3 mm or 10 mm to choose) and a slimmer title box, so the drawing gets more of the paper.']],
  ['64',['Export PDF: print only the selected objects, and hide the border and title box so only the drawing fills the page.']],
  ['63',['Export PDF: new Fill the whole page scale and Auto page direction, so the drawing or the picked area fills the A4 page.','A live preview of the page in the Export PDF box; tap it to see it big before saving.']],
  ['62',['After every update, this box shows what changed. Find it again any time: Home ⋮ › What’s new.']],
