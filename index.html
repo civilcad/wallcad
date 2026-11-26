@@ -1054,7 +1054,7 @@ defTool('pan',{label:'Pan',icon:'hand',snap:'none',
   prompt(){return'PAN: drag to move the sheet · wheel zooms · Esc or Select to stop'},click(){},bar(){return row(btn('cancel','Stop panning'))},act(a){if(a==='cancel')finish()}});
 defTool('select',{label:'Select',icon:'select',
   prompt(){return boxMode?'BOX: drag a rectangle · left→right = fully inside, right→left = touching · 2 fingers pan':sel.size?`${sel.size} selected · tap more to add, tap again to remove · drag blue squares to edit`:(touchUI?'Tap to select · drag to pan · hold + drag = box · pinch = zoom':'Click to select · click empty space, then click again = box · drag = free area · Pan (P), Space or middle-drag to move')},
-  bar(){const bx=btn('box',boxMode?'▭ Box ON':'▭ Box select',boxMode?'on':'');if(!sel.size)return st.opts||boxMode?row(bx,btn('selall','Select all'),btn('selwalls','All walls'),btn('selfurn','All furniture')):'';return row(`<span class="cnt">${sel.size} selected</span>`,btn('delsel','🗑 Delete','dng'),bx,btn('similar','+ Similar'),btn('t:move','Move'),btn('t:copy','Copy'),btn('t:rotate','Rotate'),btn('t:mirror','Mirror'),btn('color','🎨 Colour'),btn('props','Properties'),btn('selall','All'),btn('clear','Clear'))}});
+  bar(){const bx=btn('box',boxMode?'▭ Box ON':'▭ Box select',boxMode?'on':'');if(!sel.size)return st.opts||boxMode?row(bx,btn('selall','Select all'),btn('selwalls','All walls'),btn('selfurn','All furniture')):'';return row(`<span class="cnt">${sel.size} selected</span>`,btn('delsel','🗑 Delete','dng'),bx,btn('similar','+ Similar'),btn('t:move','Move'),btn('t:copy','Copy'),btn('t:rotate','Rotate'),btn('t:mirror','Mirror'),btn('color','🎨 Colour'),...([...sel].some(id=>{const e=entById(id);return e&&(e.type==='text'||e.type==='room'||e.type==='dim'||e.type==='adim')})?[btn('txs','A− Text'),btn('txb','A+ Text')]:[]),btn('props','Properties'),btn('selall','All'),btn('clear','Clear'))}});
 
 
 /* ---- walls drawn along the outside face ---- */
@@ -1223,7 +1223,25 @@ defTool('dim',{label:'Dimension',icon:'dim',draw:true,base(){return st.pts.lengt
     else if(a==='arr'){const v=el.dataset.v;if(own(ARROWS,v)){doc.set.dimArr=v;invalidate();changed();refreshUI();toast('Arrows: '+ARROWS[v]+' · used by every dimension that has no own style',2200)}}}});
 
 defTool('text',{label:'Text',icon:'text',draw:true,prompt:()=>'Tap where the text goes',
-  click(p){askText('Text','',s=>{if(!s.trim())return;commit();addEnt({type:'text',p,s,h:doc.set.textH,rot:0,layer:'text'});changed()},'Height: '+fmtLenU(doc.set.textH)+' (change in Settings)')},bar(){return row(CANCEL())}});
+  click(p){textDialog('',(+S.lastTextH>0&&S.lastTextU===doc.units)?+S.lastTextH:doc.set.textH,(s,h)=>{if(!s.trim())return;S.lastTextH=h;S.lastTextU=doc.units;commit();addEnt({type:'text',p,s,h,rot:0,layer:'text'});changed()})},bar(){return row(CANCEL())}});
+function txtSizeUnit(){return isFt()?'inch':'mm'}
+function txtToU(h){return isFt()?Math.round(h/25.4*4)/4:Math.round(h)}
+function txtFromU(v){v=+v;if(!isFinite(v)||v<=0)return null;const h=isFt()?inchMM(v):v;return Math.max(isFt()?inchMM(1):20,Math.min(isFt()?inchMM(120):3000,h))}
+function textDialog(val,h0,cb){let h=h0||doc.set.textH;const P=isFt()?[4,6,9,12,18,24]:[100,150,250,350,500,700];
+  openSheet('Text',`<input id="askI" value="${esc(val)}" autocomplete="off" placeholder="Type the text"><div class="hint" style="margin-top:10px">Text size (height in ${txtSizeUnit()==='inch'?'inches':'mm'})</div>
+  <div class="row" style="align-items:center;gap:6px;flex-wrap:wrap">${btn('tsm','A−')}<input id="askH" class="num" inputmode="decimal" style="width:80px;text-align:center" value="${txtToU(h)}">${btn('tbg','A+')}<span class="hint" id="askHP"></span></div>
+  <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">${P.map(v=>`<button class="b" data-ts="${v}">${v}${isFt()?'"':' mm'}</button>`).join('')}</div>
+  <div id="askPrev" style="margin-top:10px;padding:8px;border:1px dashed var(--line);border-radius:8px;overflow:hidden;white-space:nowrap;color:var(--tx)"></div>
+  <div class="row" style="margin-top:12px">${btn('ok','OK','pri')}</div>`,sh=>{const i=sh.querySelector('#askI'),hi=sh.querySelector('#askH'),pv=sh.querySelector('#askPrev');
+    const show=()=>{hi.value=txtToU(h);const px=Math.max(10,Math.min(64,h*view.z));pv.style.fontSize=px+'px';pv.textContent=(i.value||'Sample text');sh.querySelectorAll('[data-ts]').forEach(b=>b.classList.toggle('on',Math.abs(txtToU(h)-(+b.dataset.ts))<0.01))};
+    const set=v=>{if(v)h=v;show()};
+    sh.querySelector('[data-act=tsm]').onclick=()=>set(h/1.25);sh.querySelector('[data-act=tbg]').onclick=()=>set(h*1.25);
+    sh.querySelectorAll('[data-ts]').forEach(b=>b.onclick=()=>set(txtFromU(b.dataset.ts)));
+    hi.onchange=()=>set(txtFromU(hi.value));i.oninput=show;show();
+    setTimeout(()=>{i.focus();i.select()},50);const go=()=>{const v=txtFromU(hi.value);if(v)h=v;closeSheet();cb(i.value,h)};
+    sh.querySelector('[data-act=ok]').onclick=go;i.onkeydown=e=>{if(e.key==='Enter')go()}})}
+function textScaleSel(f){const ids=[...sel].filter(id=>{const e=entById(id);return e&&(e.type==='text'||e.type==='room'||e.type==='dim'||e.type==='adim')});if(!ids.length)return toast('Select a text, room name or dimension first');commit();
+  for(const id of ids){const e=entById(id);const d=e.type==='text'||e.type==='room'?doc.set.textH:doc.set.textH*0.7;e.h=Math.max(isFt()?inchMM(1):20,Math.min(isFt()?inchMM(120):3000,(e.h||d)*f))}changed();render();toast((f>1?'Bigger':'Smaller')+' text · '+ids.length+' changed',1200)}
 
 defTool('room',{label:'Room',icon:'room',draw:true,base:base0,
   prompt(){return st.pts.length<2?'Tap the room corners (2 corners = rectangle), then Done':'Tap more corners, then Done'},
@@ -1706,7 +1724,7 @@ function barAct(el){const a=el.dataset.act;
     doc.ents.forEach(e=>{if(lvis(e.layer)&&!llock(e.layer)&&f(e))sel.add(e.id)});toast(`${sel.size-n0} added · ${sel.size} selected`,1400);refreshUI();render();return}
   if(a==='angref'){if(st.refAng!=null){st.refAng=null;st.pickRef=false;toast('Angle measured from horizontal again',1400)}else{st.pickRef=true;toast('Tap the line to measure the angle from',2200)}refreshUI();render();return}
   if(a==='dir'){const av=$('#inAng')?$('#inAng').value.trim():'';const p=typedPoint(+el.dataset.a+(av!==''&&!isNaN(+av)?+av:0));if(p){T.click(p,p);parkPlaced(p);keepVisible(p)}return}
-  if(a==='props')return openProps();if(a==='delsel')return delSel();if(a==='color')return openColour();if(a==='clear'){sel.clear();refreshUI();render();return}
+  if(a==='props')return openProps();if(a==='txs')return textScaleSel(0.8);if(a==='txb')return textScaleSel(1.25);if(a==='delsel')return delSel();if(a==='color')return openColour();if(a==='clear'){sel.clear();refreshUI();render();return}
   if(a.startsWith('t:'))return setTool(a.slice(2));
   if(T.act)T.act(a,el)}
 function keepVisible(p){const vb=visibleBox(),mx=(vb.x1-vb.x0)*0.12,my=(vb.y1-vb.y0)*0.12;if(p.x<vb.x0+mx||p.x>vb.x1-mx||p.y<vb.y0+my||p.y>vb.y1-my){view.cx=p.x;view.cy=p.y;render()}}
@@ -1811,7 +1829,7 @@ let sheetAt=0,ghost=false;
 function openSheet(title,html,mount){sheetAt=Date.now();ghost=Date.now()-barPD<150;$('#sheet').innerHTML=`<h3><span>${esc(title)}</span><button class="ib" data-close aria-label="Close">${icon('zout').replace('M5 12h14','M6 6l12 12M18 6L6 18')}</button></h3>`+html;$('#ov').classList.add('show');$('#sheet').scrollTop=0;if(mount)mount($('#sheet'))}
 function closeSheet(){$('#ov').classList.remove('show')}
 $('#ov').addEventListener('click',e=>{if(ghost){ghost=false;if(Date.now()-sheetAt<700){e.stopPropagation();e.preventDefault()}}},true);
-$('#ov').addEventListener('click',e=>{if(e.defaultPrevented)return;if(e.target.id==='ov'||e.target.closest('[data-close]'))closeSheet()});
+$('#ov').addEventListener('click',e=>{if(e.defaultPrevented)return;if(e.target.id==='ov'&&Date.now()-sheetAt<600)return;if(e.target.id==='ov'||e.target.closest('[data-close]'))closeSheet()});
 function askText(title,val,cb,hint){openSheet(title,`<input id="askI" value="${esc(val)}" autocomplete="off">${hint?`<div class="hint">${esc(hint)}</div>`:''}<div class="row" style="margin-top:12px">${btn('ok','OK','pri')}</div>`,s=>{const i=s.querySelector('#askI');setTimeout(()=>{i.focus();i.select()},50);const go=()=>{closeSheet();cb(i.value)};s.querySelector('[data-act=ok]').onclick=go;i.onkeydown=e=>{if(e.key==='Enter')go()}})}
 const ROOMS=['Living','Bedroom','Master bedroom','Kitchen','Dining','Bathroom','Toilet','Balcony','Puja','Store','Study','Passage','Parking','Utility','Staircase','Sit-out'];
 function roomDialog(def,cb){openSheet('Room name',`<input id="askI" value="${esc(def)}" autocomplete="off"><div class="row" style="flex-wrap:wrap;margin-top:8px">${ROOMS.map(r=>`<button class="b" data-r="${esc(r)}">${esc(r)}</button>`).join('')}</div><div class="row" style="margin-top:12px">${btn('ok','OK','pri')}</div>`,s=>{const i=s.querySelector('#askI');const go=v=>{closeSheet();cb(v||'Room')};s.querySelector('[data-act=ok]').onclick=()=>go(i.value);s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>go(b.dataset.r.toUpperCase()));i.onkeydown=e=>{if(e.key==='Enter')go(i.value)}})}
@@ -2152,10 +2170,12 @@ const SCALES_M=[1,2,5,10,20,25,50,75,100,125,150,200,250,300,400,500,750,1000,12
 const SCALES_FT=[[12,'1" = 1\'-0"'],[16,'3/4" = 1\'-0"'],[24,'1/2" = 1\'-0"'],[32,'3/8" = 1\'-0"'],[48,'1/4" = 1\'-0"'],[64,'3/16" = 1\'-0"'],[96,'1/8" = 1\'-0"'],[128,'3/32" = 1\'-0"'],[192,'1/16" = 1\'-0"'],[384,'1/32" = 1\'-0"'],[768,'1/64" = 1\'-0"']];
 const scaleList=()=>isFt()?SCALES_FT:SCALES_M.map(s=>[s,'1:'+s]);
 const scaleLabel=s=>{const f=scaleList().find(x=>x[0]===s);return f?f[1]:'1:'+Math.round(s)};
-function pdfLayout(o){let[pw,ph]=PAPERS[o.paper]||PAPERS.A4;if(o.orient==='landscape')[pw,ph]=[ph,pw];const M=10,TB=17;const area={x:M,y:M+TB,w:pw-2*M,h:ph-2*M-TB};const bb=o.areaMode==='screen'?visibleBox():o.areaMode==='pick'&&printArea?Object.assign({},printArea):extents();if(!bb||!(bb.x1-bb.x0>1)||!(bb.y1-bb.y0>1))return null;
-  const bw=bb.x1-bb.x0,bh=bb.y1-bb.y0,need=Math.max(bw/(area.w-12),bh/(area.h-12));let S0=+o.scale;if(o.scale==='fit'||!S0){const l=scaleList();S0=(l.find(x=>x[0]>=need)||l[l.length-1])[0];if(need>S0)S0=need}return{pw,ph,M,TB,area,bb,S:S0,fits:need<=S0+1e-9,win:o.areaMode==='screen'||o.areaMode==='pick'}}
+function selBBox(){let b={x0:Infinity,y0:Infinity,x1:-Infinity,y1:-Infinity};for(const id of sel){const e=entById(id);if(!e)continue;const q=entBBox(e);if(!isFinite(q.x0))continue;b.x0=Math.min(b.x0,q.x0);b.y0=Math.min(b.y0,q.y0);b.x1=Math.max(b.x1,q.x1);b.y1=Math.max(b.y1,q.y1)}return isFinite(b.x0)?b:null}
+function pdfLayout(o){let[pw,ph]=PAPERS[o.paper]||PAPERS.A4;const bb=o.areaMode==='sel'?selBBox():o.areaMode==='screen'?visibleBox():o.areaMode==='pick'&&printArea?Object.assign({},printArea):extents();if(!bb||!(bb.x1-bb.x0>1)||!(bb.y1-bb.y0>1))return null;
+  const plain=!!o.plain,M=plain?5:10,TB=plain?0:17;let orient=o.orient;if(orient!=='landscape'&&orient!=='portrait'){const fitOf=(w,h)=>Math.min((w-2*M-4)/(bb.x1-bb.x0),(h-2*M-TB-4)/(bb.y1-bb.y0));orient=fitOf(ph,pw)>fitOf(pw,ph)?'landscape':'portrait'}if(orient==='landscape')[pw,ph]=[ph,pw];const area={x:M,y:M+TB,w:pw-2*M,h:ph-2*M-TB};
+  const fill=o.scale==='fill',pad=fill?4:12,bw=bb.x1-bb.x0,bh=bb.y1-bb.y0,need=Math.max(bw/(area.w-pad),bh/(area.h-pad));let S0=+o.scale;if(fill){S0=need}else if(o.scale==='fit'||!S0){const l=scaleList();S0=(l.find(x=>x[0]>=need)||l[l.length-1])[0];if(need>S0)S0=need}return{pw,ph,M,TB,area,bb,S:S0,fits:need<=S0+1e-9,win:o.areaMode==='screen'||o.areaMode==='pick',orient,fill,plain}}
 function buildPDF(o){
-  const Lp=pdfLayout(o);if(!Lp)return null;const{pw,ph,M,TB,area,bb,S,win}=Lp;const k=72/25.4;const ccx=(bb.x0+bb.x1)/2,ccy=(bb.y0+bb.y1)/2;
+  const Lp=pdfLayout(o);if(!Lp)return null;const ONLY=o.areaMode==='sel'?new Set(sel):null;const{pw,ph,M,TB,area,bb,S,win}=Lp;const k=72/25.4;const ccx=(bb.x0+bb.x1)/2,ccy=(bb.y0+bb.y1)/2;
   const X=x=>((area.x+area.w/2)+(x-ccx)/S)*k,Y=y=>((area.y+area.h/2)+(y-ccy)/S)*k;const f=n=>(Math.round(n*100)/100).toFixed(2).replace(/\.?0+$/,'')||'0';
   const out=[];const rgb=h=>{const n=parseInt((h||'#000').slice(1),16);return[(n>>16)/255,((n>>8)&255)/255,(n&255)/255].map(v=>f(v)).join(' ')};
   const sc=h=>o.mono?'0 0 0':rgb(lum(h)>0.8?'#000000':h);
@@ -2170,46 +2190,74 @@ function buildPDF(o){
   if(win){cx0=Math.max(cx0,X(bb.x0));cy0=Math.max(cy0,Y(bb.y0));cx1=Math.min(cx1,X(bb.x1));cy1=Math.min(cy1,Y(bb.y1))}
   out.push(`q ${f(cx0)} ${f(cy0)} ${f(cx1-cx0)} ${f(cy1-cy0)} re W n`);
   const inWin=b=>!win||bbHit(b,bb);
-  const wd=wallData(),vq=wd.quads.filter(q=>lvis(q.w.layer)&&inWin(entBBox(q.w)));
+  const wd=wallData(),vq=wd.quads.filter(q=>(!ONLY||ONLY.has(q.w.id))&&lvis(q.w.layer)&&inWin(entBBox(q.w)));
   const polyPath=P=>P.map(p=>pathOf({k:'P',pts:p,closed:true})).join('');
   const fillOp=(polys,F,white)=>{const path=polyPath(polys);if(!path)return'';if(F.p==='solid')return frgb(F.c)+' rg\n'+path+'f\n';let acc=white?'1 1 1 rg\n'+path+'f\n':'';if(F.p==='none')return acc;const segs=hatchSegs(polysBB(polys),F.p,F.s,F.a);if(!segs.length)return acc;return acc+'q\n'+path+'W n\n0.25 w [] 0 d '+(o.mono?'0 0 0':rgb(F.c))+' RG\n'+segs.map(([a,b])=>pp(a)+' m '+pp(b)+' l').join('\n')+'\nS\nQ\n'};
-  for(const e of doc.ents){if(e.type==='wall'||!e.fill||!lvis(e.layer)||!inWin(entBBox(e)))continue;out.push(fillOp(fillPolys(e),e.fill,false))}
+  for(const e of doc.ents){if(ONLY&&!ONLY.has(e.id))continue;if(e.type==='wall'||!e.fill||!lvis(e.layer)||!inWin(entBBox(e)))continue;out.push(fillOp(fillPolys(e),e.fill,false))}
   if(vq.length){out.push('0 j 0 J');const wg=new Map();vq.forEach(q=>{const k=sc(eCol(q.w))+'|'+(q.w.lw?LWPT[q.w.lw]*2:1.1);if(!wg.has(k))wg.set(k,[]);wg.get(k).push(q)});
     for(const[k,qs]of wg){const[c,w]=k.split('|');out.push(`${w} w ${c} RG\n`+polyPath(qs.map(q=>q.pts))+'S')}
     const byW=new Map();vq.forEach(q=>{if(!byW.has(q.w))byW.set(q.w,[]);byW.get(q.w).push(q.pts)});for(const[w,P]of byW)out.push(fillOp(P,wallFill(w),true));out.push('1 J 1 j')}
-  for(const e of doc.ents){if(e.type==='wall'||!lvis(e.layer)||!inWin(entBBox(e)))continue;const P=prims(e),col=eCol(e);const lw=e.lw?LWPT[e.lw]:e.type==='dim'?0.3:e.type==='block'&&BLOCKS[e.b]&&!BLOCKS[e.b].cut?0.4:0.6;const dsh=e.lt?'['+DASHMM[e.lt].map(x=>f(x*k)).join(' ')+'] 0 d':'[] 0 d';let pth='',fp='';for(const pr of P)if(pr.k!=='T'){pth+=pathOf(pr);if(pr.f)fp+=pathOf(pr)+(pr.k==='P'&&!pr.closed?'h\n':'')}if(pth)out.push(`${lw} w ${dsh} ${sc(col)} RG\n${pth}S`);if(fp)out.push(`${sc(col)} rg\n${fp}f`);for(const pr of P)if(pr.k==='T')out.push(textOp(pr,col))}
+  for(const e of doc.ents){if(ONLY&&!ONLY.has(e.id))continue;if(e.type==='wall'||!lvis(e.layer)||!inWin(entBBox(e)))continue;const P=prims(e),col=eCol(e);const lw=e.lw?LWPT[e.lw]:e.type==='dim'?0.3:e.type==='block'&&BLOCKS[e.b]&&!BLOCKS[e.b].cut?0.4:0.6;const dsh=e.lt?'['+DASHMM[e.lt].map(x=>f(x*k)).join(' ')+'] 0 d':'[] 0 d';let pth='',fp='';for(const pr of P)if(pr.k!=='T'){pth+=pathOf(pr);if(pr.f)fp+=pathOf(pr)+(pr.k==='P'&&!pr.closed?'h\n':'')}if(pth)out.push(`${lw} w ${dsh} ${sc(col)} RG\n${pth}S`);if(fp)out.push(`${sc(col)} rg\n${fp}f`);for(const pr of P)if(pr.k==='T')out.push(textOp(pr,col))}
   out.push('[] 0 d');
   out.push('Q');
   // frame + title block
   const T2=(x,y,s,sz,b,gray)=>`BT /${b?'F2':'F1'} ${f(sz)} Tf ${gray?'0.4 0.4 0.4':'0 0 0'} rg 1 0 0 1 ${f(x*k)} ${f(y*k)} Tm ${pstr(s)} Tj ET`;
-  out.push(`0 0 0 RG 0.8 w ${f(M*k)} ${f(M*k)} ${f((pw-2*M)*k)} ${f((ph-2*M)*k)} re S`);out.push(`0.6 w ${f(M*k)} ${f((M+TB)*k)} m ${f((pw-M)*k)} ${f((M+TB)*k)} l S`);
+  if(!Lp.plain){out.push(`0 0 0 RG 0.8 w ${f(M*k)} ${f(M*k)} ${f((pw-2*M)*k)} ${f((ph-2*M)*k)} re S`);out.push(`0.6 w ${f(M*k)} ${f((M+TB)*k)} m ${f((pw-M)*k)} ${f((M+TB)*k)} l S`);
   const cols=[['PROJECT',o.title||doc.name,0.40],['DRAWN BY',o.by||'-',0.18],['DATE',new Date().toLocaleDateString(),0.14],['SCALE',scaleLabel(S),0.17],['UNITS',isFt()?'ft-in':'m',0.11]];let cx=M;const tw2=pw-2*M;
   cols.forEach(([lab,val,fr],i)=>{const w=tw2*fr;if(i)out.push(`0.4 w ${f(cx*k)} ${f(M*k)} m ${f(cx*k)} ${f((M+TB)*k)} l S`);out.push(T2(cx+2.5,M+TB-5.5,lab,5.5,false,true));let v=String(val);const mx=Math.floor((w-5)/(i===0?2.3:2.0));if(v.length>mx)v=v.slice(0,mx-3)+'...';out.push(T2(cx+2.5,M+4.5,v,i===0?11:9,true));cx+=w});
-  out.push(T2(pw-M-38,M+TB+2.5,'Drawn with WallCAD',5,false,true));
+  out.push(T2(pw-M-38,M+TB+2.5,'Drawn with WallCAD',5,false,true));}
   const content=out.join('\n');
   const objs=[null,'<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>',`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${f(pw*k)} ${f(ph*k)}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>`,`<< /Length ${content.length} >>\nstream\n${content}\nendstream`,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
   let pdf='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';const offs=[];for(let i=1;i<objs.length;i++){offs[i]=pdf.length;pdf+=`${i} 0 obj\n${objs[i]}\nendobj\n`}
   const xr=pdf.length;pdf+=`xref\n0 ${objs.length}\n0000000000 65535 f \n`+offs.slice(1).map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`;
   const u8=new Uint8Array(pdf.length);for(let i=0;i<pdf.length;i++)u8[i]=pdf.charCodeAt(i)&255;return{bytes:u8,S,fits:Lp.fits}}
+/* page preview: draws our own PDF page onto a canvas */
+function pdfDraw(bytes,cv,maxW,maxH){let raw='';for(let i=0;i<bytes.length;i++)raw+=String.fromCharCode(bytes[i]);
+  const mb=raw.match(/\/MediaBox \[0 0 ([\d.]+) ([\d.]+)\]/);if(!mb)return;const PW=+mb[1],PH=+mb[2];const a=raw.indexOf('stream\n'),b=raw.indexOf('\nendstream');if(a<0||b<0)return;const src=raw.slice(a+7,b);
+  const dpr=Math.min(3,window.devicePixelRatio||1),sc=Math.min(maxW/PW,(maxH||1e9)/PH);cv.width=Math.round(PW*sc*dpr);cv.height=Math.round(PH*sc*dpr);cv.style.width=Math.round(PW*sc)+'px';cv.style.height=Math.round(PH*sc)+'px';
+  const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.setTransform(sc*dpr,0,0,-sc*dpr,0,cv.height);
+  const st=[];let fs=10,fb=false,fill='#000',stroke='#000',inPath=false;const col=(r,gg,bb)=>`rgb(${Math.round(r*255)},${Math.round(gg*255)},${Math.round(bb*255)})`;
+  const toks=[];const re=/\((?:\\.|[^\\)])*\)|\[[^\]]*\]|\/[A-Za-z0-9]+|[-+]?\d*\.?\d+|[A-Za-z*'"]+/g;let m;while((m=re.exec(src)))toks.push(m[0]);
+  let ops=[];g.beginPath();
+  for(const t of toks){const c=t[0];if(c==='('||c==='['||c==='/'||/^[-+\d.]/.test(t)){ops.push(t);continue}const n=i=>+ops[ops.length-i];
+    switch(t){case'q':g.save();st.push([fs,fb,fill,stroke]);break;case'Q':g.restore();const z=st.pop();if(z)[fs,fb,fill,stroke]=z;break;
+      case'm':g.moveTo(n(2),n(1));break;case'l':g.lineTo(n(2),n(1));break;case'c':g.bezierCurveTo(n(6),n(5),n(4),n(3),n(2),n(1));break;case'h':g.closePath();break;
+      case're':g.rect(n(4),n(3),n(2),n(1));break;case'W':g.clip();break;case'n':g.beginPath();break;
+      case'S':g.strokeStyle=stroke;g.stroke();g.beginPath();break;case'f':case'F':g.fillStyle=fill;g.fill();g.beginPath();break;case'f*':g.fillStyle=fill;g.fill('evenodd');g.beginPath();break;
+      case'B':g.fillStyle=fill;g.fill();g.strokeStyle=stroke;g.stroke();g.beginPath();break;case'B*':g.fillStyle=fill;g.fill('evenodd');g.strokeStyle=stroke;g.stroke();g.beginPath();break;
+      case'w':g.lineWidth=Math.max(n(1),0.15);break;case'J':g.lineCap=['butt','round','square'][n(1)]||'butt';break;case'j':g.lineJoin=['miter','round','bevel'][n(1)]||'miter';break;
+      case'd':{const arr=(ops[ops.length-2]||'[]').replace(/[\[\]]/g,'').trim();g.setLineDash(arr?arr.split(/\s+/).map(Number):[]);break}
+      case'RG':stroke=col(n(3),n(2),n(1));break;case'rg':fill=col(n(3),n(2),n(1));break;case'G':stroke=col(n(1),n(1),n(1));break;case'g':fill=col(n(1),n(1),n(1));break;
+      case'BT':break;case'ET':break;case'Tf':fs=n(1);fb=ops[ops.length-2]==='/F2';break;
+      case'Tm':g.save();g.transform(n(6),n(5),n(4),n(3),n(2),n(1));g.scale(1,-1);g._tm=1;break;
+      case'Tj':{let s2=ops[ops.length-1]||'()';s2=s2.slice(1,-1).replace(/\\(.)/g,'$1');g.font=(fb?'bold ':'')+fs+'px Helvetica, Arial, sans-serif';g.fillStyle=fill;g.fillText(s2,0,0);if(g._tm){g.restore();g._tm=0}break}
+      default:break}
+    ops=[]}}
+function pdfPreview(o,cv,maxW){const r=buildPDF(o);if(!r){const g=cv.getContext('2d');cv.width=200;cv.height=60;g.fillStyle='#fff';g.fillRect(0,0,200,60);g.fillStyle='#666';g.font='13px sans-serif';g.fillText(o.areaMode==='pick'?'Pick an area first':'Nothing to print',20,35);return}pdfDraw(r.bytes,cv,Math.max(120,maxW||280),360)}
+function pdfPreviewBig(o){const r=buildPDF(o);if(!r)return;const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(20,22,26,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box';
+  d.innerHTML='<canvas style="background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.6)"></canvas><button class="b pri" style="margin-top:12px">Close preview</button>';document.body.appendChild(d);
+  pdfDraw(r.bytes,d.querySelector('canvas'),innerWidth-24,innerHeight-90);const close=()=>d.remove();d.querySelector('button').onclick=close;d.addEventListener('click',e=>{if(e.target===d)close()})}
 let printArea=null,expMode='all',expTitle='';const docTitle=()=>doc.name+(doc.floors&&doc.floors.length>1?' - '+doc.floors[doc.fl].name:'');
 function openExport(){
-  if(!doc.ents.length)return toast('Draw something first');const s0=doc.set;
-  openSheet('Export PDF',`<div class="row"><select id="eP">${Object.keys(PAPERS).map(p=>`<option ${p===s0.paper?'selected':''}>${p}</option>`).join('')}</select><select id="eO"><option value="landscape" ${s0.orient==='landscape'?'selected':''}>Landscape</option><option value="portrait" ${s0.orient==='portrait'?'selected':''}>Portrait</option></select></div>
+  if(!doc.ents.length)return toast('Draw something first');if(!sel.size&&expMode==='sel')expMode='all';const s0=doc.set;
+  openSheet('Export PDF',`<div class="row"><select id="eP">${Object.keys(PAPERS).map(p=>`<option ${p===s0.paper?'selected':''}>${p}</option>`).join('')}</select><select id="eO"><option value="auto" ${!s0.orientChosen?'selected':''}>Auto (best fit)</option><option value="landscape" ${s0.orientChosen&&s0.orient==='landscape'?'selected':''}>Landscape</option><option value="portrait" ${s0.orientChosen&&s0.orient==='portrait'?'selected':''}>Portrait</option></select></div>
    <label>Print colors</label><select id="eM"><option value="0" ${!s0.mono?'selected':''}>Colorful (as drawn)</option><option value="1" ${s0.mono?'selected':''}>Black &amp; white (lines black, fills grey)</option></select>
-   <label>What to print</label><select id="eA"><option value="all" ${expMode==='all'?'selected':''}>Whole drawing</option><option value="screen" ${expMode==='screen'?'selected':''}>What's on screen now</option><option value="pick" ${expMode==='pick'?'selected':''}>${printArea?'Picked area ('+esc(fmtShort(printArea.x1-printArea.x0))+' × '+esc(fmtShort(printArea.y1-printArea.y0))+')':'Pick an area on the drawing…'}</option></select>
+   <label>What to print</label><select id="eA"><option value="all" ${expMode==='all'?'selected':''}>Whole drawing</option><option value="screen" ${expMode==='screen'?'selected':''}>What's on screen now</option>${sel.size?`<option value="sel" ${expMode==='sel'?'selected':''}>Only the selected objects (${sel.size})</option>`:''}<option value="pick" ${expMode==='pick'?'selected':''}>${printArea?'Picked area ('+esc(fmtShort(printArea.x1-printArea.x0))+' × '+esc(fmtShort(printArea.y1-printArea.y0))+')':'Pick an area on the drawing…'}</option></select>
    ${printArea?`<div class="row" style="margin-top:6px">${btn('repick','Pick a different area')}</div>`:''}
-   <label>Scale</label><select id="eS"><option value="fit">Fit to page (best standard scale)</option>${scaleList().map(([v,l])=>`<option value="${v}" ${String(v)===String(s0.scale)?'selected':''}>${esc(l)}</option>`).join('')}</select>
-   <div class="hint" id="eInfo"></div>
+   <label>Border and title box</label><select id="eF"><option value="show" ${!(s0.plainPdf||expMode==='sel')?'selected':''}>Show (border, project, drawn by, date, scale)</option><option value="hide" ${s0.plainPdf||expMode==='sel'?'selected':''}>Hide · only the drawing on the page</option></select>
+   <label>Scale</label><select id="eS"><option value="fill" ${s0.scale==='fill'||!s0.scale||s0.scale==='fit'&&!s0.fitChosen?'selected':''}>Fill the whole page</option><option value="fit" ${s0.scale==='fit'&&s0.fitChosen?'selected':''}>Fit to page (best standard scale)</option>${scaleList().map(([v,l])=>`<option value="${v}" ${String(v)===String(s0.scale)?'selected':''}>${esc(l)}</option>`).join('')}</select>
+   <div class="hint" id="eInfo"></div><div id="ePrevW" style="margin:8px 0;text-align:center;background:#3a3f47;border-radius:8px;padding:10px"><canvas id="ePrev" style="background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.5);max-width:100%;cursor:zoom-in" aria-label="Page preview"></canvas><div class="hint" style="color:#cfd6df">Preview of the page · tap to see it big</div></div>
    <label>Title</label><input id="eT" value="${esc(expTitle||docTitle())}"><label>Drawn by</label><input id="eB" value="${esc(s0.by||'')}">
    <div class="row" style="margin-top:14px">${btn('go',icon('share')+' Save / share PDF','pri')}</div><div class="hint">The PDF is vector, so it stays sharp when zoomed or printed. Hidden layers are left out.</div>`,s=>{
-    const val=()=>({areaMode:s.querySelector('#eA').value,paper:s.querySelector('#eP').value,orient:s.querySelector('#eO').value,scale:s.querySelector('#eS').value,title:s.querySelector('#eT').value,by:s.querySelector('#eB').value,mono:s.querySelector('#eM').value==='1'});
-    const info=()=>{const L2=pdfLayout(val());s.querySelector('#eInfo').textContent=L2?(L2.fits?`Prints at ${scaleLabel(L2.S)}.`:`Too big for this paper at this scale. Pick a smaller scale or bigger paper.`):''};
-    const keep=()=>{const o=val();Object.assign(doc.set,{paper:o.paper,orient:o.orient,scale:o.scale,by:o.by,mono:o.mono});expTitle=o.title;saveSoon()};
+    const val=()=>({plain:s.querySelector('#eF').value==='hide',areaMode:s.querySelector('#eA').value,paper:s.querySelector('#eP').value,orient:s.querySelector('#eO').value,scale:s.querySelector('#eS').value,title:s.querySelector('#eT').value,by:s.querySelector('#eB').value,mono:s.querySelector('#eM').value==='1'});
+    let pvT=0;const info=()=>{const o=val(),L2=pdfLayout(o);s.querySelector('#eInfo').textContent=L2?(L2.fits?`Prints at ${scaleLabel(L2.S)} · ${L2.orient==='landscape'?'Landscape':'Portrait'}${L2.fill?' · fills the page':''}.`:`Too big for this paper at this scale. Pick a smaller scale or bigger paper.`):'';clearTimeout(pvT);pvT=setTimeout(()=>{try{pdfPreview(o,s.querySelector('#ePrev'),Math.min(300,s.clientWidth-60))}catch(e){}},60)};
+    s.querySelector('#ePrev').onclick=()=>pdfPreviewBig(val());s.querySelectorAll('input').forEach(x=>x.addEventListener('change',info));
+    const keep=()=>{const o=val();Object.assign(doc.set,{plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});expTitle=o.title;saveSoon()};
     const pick=()=>{keep();closeSheet();setTool('printarea')};
     s.querySelectorAll('select').forEach(x=>x.onchange=info);
-    s.querySelector('#eA').onchange=()=>{expMode=s.querySelector('#eA').value;if(expMode==='pick'&&!printArea)return pick();info()};
+    s.querySelector('#eA').onchange=()=>{expMode=s.querySelector('#eA').value;if(expMode==='pick'&&!printArea)return pick();if(expMode==='sel')s.querySelector('#eF').value='hide';info()};
     const rp=s.querySelector('[data-act=repick]');if(rp)rp.onclick=pick;info();
-    s.querySelector('[data-act=go]').onclick=()=>{const o=val();Object.assign(doc.set,{paper:o.paper,orient:o.orient,scale:o.scale,by:o.by,mono:o.mono});saveSoon();const r=buildPDF(o);if(!r)return toast(o.areaMode==='pick'?'Pick an area first':'Nothing to export');closeSheet();saveFile(safeName(o.title)+'.pdf',new Blob([r.bytes],{type:'application/pdf'}),'application/pdf')}})}
+    s.querySelector('[data-act=go]').onclick=()=>{const o=val();Object.assign(doc.set,{plainPdf:o.plain,paper:o.paper,orient:o.orient,scale:o.scale,fitChosen:o.scale==='fit',orientChosen:o.orient!=='auto',by:o.by,mono:o.mono});saveSoon();if(o.areaMode==='sel'&&!sel.size)return toast('Select the objects to print first');const r=buildPDF(o);if(!r)return toast(o.areaMode==='pick'?'Pick an area first':'Nothing to export');closeSheet();saveFile(safeName(o.title)+'.pdf',new Blob([r.bytes],{type:'application/pdf'}),'application/pdf')}})}
 
 /* DXF (AutoCAD 2010 format: layers, colours, line types, real hatches, blocks and dimensions) */
 const DXF_TPL=`0
@@ -6420,7 +6468,7 @@ function makeSample(){
 
 
 /* ================= updates & offline ================= */
-const APP_VERSION='59';
+const APP_VERSION='64';
 const SHELL_CACHE='plancad-shell';
 const SHELL_FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png'];
 const VRX=/^\d{1,4}(\.\d{1,4}){0,3}$/;
@@ -6437,6 +6485,28 @@ async function fetchRemote(){const r=await fetch('version.json?t='+Date.now(),{c
   const v=String(j&&j.version||'');if(!VRX.test(v))throw new Error('bad version');
   const notes=Array.isArray(j.notes)?j.notes.slice(0,20).map(n=>String(n).slice(0,200)):[];
   return{version:v,notes,date:String(j.date||'').slice(0,20)}}
+/* ===== What's new after an update (v62) ===== */
+const CHANGES=[
+ ['64',['Export PDF: print only the selected objects, and hide the border and title box so only the drawing fills the page.']],
+ ['63',['Export PDF: new Fill the whole page scale and Auto page direction, so the drawing or the picked area fills the A4 page.','A live preview of the page in the Export PDF box; tap it to see it big before saving.']],
+ ['62',['After every update, this box shows what changed. Find it again any time: Home ⋮ › What’s new.']],
+ ['61',['Text size: A− / A+, a size box, quick sizes and a preview in the Text box.','Select texts, room names or dimensions and tap A− Text or A+ Text to resize them.']],
+ ['60',['Fixed: on phones the Text box closed by itself before you could type.']],
+ ['59',['My tools: Properties, Zoom fit, Undo, Redo, Layers and Erase removed; Chamfer, Corner, Join, Explode, Aligned and Angular dimension, Room, Measure, Colour and Railing added.']],
+ ['57',['My tools panel starts with the most used tools; scroll it, ✎ to remove or add.']],
+ ['56',['The ✋ Pan button now sits with the zoom buttons at the right side of the drawing.']],
+ ['55',['PC: select like AutoCAD: click, click-click box (blue = inside, green = touching) and drag for a free-shape lasso.','Pan with ✋, the middle or right mouse button, or Space + drag.']],
+ ['54',['∠ from a line: draw a line at any angle to a slanted line.','Angle lock: type an angle in ∠ and the line stays at that angle.','Type @10<30, @5,3 or <45 in the command box, like AutoCAD.']],
+ ['53',['Docked tool panels start thin; drag their far end to change the length, their inner edge for the thickness.']],
+ ['52',['Dimensions use closed filled arrows by default.','Tab panels drop at the top reliably, with a blue preview area.']],
+];
+function changesHTML(from){const list=CHANGES.filter(c=>!from||vcmp(c[0],from)>0).slice(0,8);if(!list.length)return'<p>Improvements and fixes.</p>';
+  return list.map(([v,n])=>`<div style="margin:10px 0 4px;font-weight:700">Version ${esc(v)}</div><ul class="notes" style="margin-top:2px">${n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('')}
+function showWhatsNew(from){openSheet(from?'WallCAD updated to v'+APP_VERSION:'What’s new in WallCAD',`${from?`<div class="hint">Your plans are safe · here is what changed</div>`:''}<div style="max-height:55vh;overflow:auto">${changesHTML(from)}</div><div class="row" style="margin-top:12px">${btn('ok','OK, got it','pri')}</div>`,sh=>{sh.querySelector('[data-act=ok]').onclick=closeSheet})}
+function afterUpdateCheck(){let seen=null;try{seen=store.get(KEY+'seenVer')}catch(e){}
+  try{store.set(KEY+'seenVer',APP_VERSION)}catch(e){}
+  if(!seen){let old=null;try{old=store.get(KEY+'index')}catch(e){}if(old)seen='58'}
+  if(seen&&VRX.test(seen)&&vcmp(APP_VERSION,seen)>0)setTimeout(()=>{if(!$('#ov').classList.contains('show'))showWhatsNew(seen)},900)}
 async function checkUpdate(manual){
   if(!HOSTED){if(manual)openSheet('Check for updates',`<p>You have WallCAD <b>${APP_VERSION}</b>.</p><p>Automatic updates work when WallCAD is opened from its <b>website link</b> (for example the one added to your home screen). This copy was opened ${isFramed?'inside another page':'as a file'}, so it can’t check for updates by itself.</p><div class="hint">Ask the person who shared WallCAD for the website link.</div>`);return}
   if(!navigator.onLine){if(manual)toast('You’re offline · connect to the internet to check for updates',3000);return}
@@ -6975,7 +7045,7 @@ window.HOME=(function(){const el=$('#home'),list=$('#hmList'),TH=KEY+'th.';let l
   $('#hmFind').addEventListener('input',e=>{findQ=e.target.value;draw()});
   
   el.querySelectorAll('[data-hm]').forEach(b=>b.onclick=()=>({new:newDrawing,open:upload,sample:()=>{if(doc&&!doc.__gone)saveDoc();loadDoc(makeSample());saveSoon();hide();toast('Sample plan opened as a new drawing',1800)},about:()=>WM.open(),help:()=>{openHelp()},update:()=>checkUpdate(true),dwg:()=>showDWGHelp('')})[b.dataset.hm]());
-  $('#hmMenu').onclick=()=>openSheet('WallCAD',`<div class="menu">${btn('u',icon('undo').replace('<svg','<svg style="transform:scaleX(-1)"')+'Check for updates')}${btn('h',icon('measure')+'How to use')}${btn('a',icon('text')+'About / Tutorials')}${INSTALL_EVT?btn('i',icon('zin')+'Install app'):''}</div><div class="hint">WallCAD version ${APP_VERSION} · by Devendra Kumar</div>`,s=>{const on=(k,f)=>{const b=s.querySelector('[data-act='+k+']');if(b)b.onclick=()=>{closeSheet();f()}};on('u',()=>checkUpdate(true));on('h',openHelp);on('a',WM.open);on('i',installApp)});
+  $('#hmMenu').onclick=()=>openSheet('WallCAD',`<div class="menu">${btn('u',icon('undo').replace('<svg','<svg style="transform:scaleX(-1)"')+'Check for updates')}${btn('w',icon('text')+'What’s new')}${btn('h',icon('measure')+'How to use')}${btn('a',icon('text')+'About / Tutorials')}${INSTALL_EVT?btn('i',icon('zin')+'Install app'):''}</div><div class="hint">WallCAD version ${APP_VERSION} · by Devendra Kumar</div>`,s=>{const on=(k,f)=>{const b=s.querySelector('[data-act='+k+']');if(b)b.onclick=()=>{closeSheet();f()}};on('u',()=>checkUpdate(true));on('w',()=>showWhatsNew(null));on('h',openHelp);on('a',WM.open);on('i',installApp)});
   document.addEventListener('keydown',e=>{if(!visible()||$('#ov').classList.contains('show'))return;if(e.key==='Escape'&&el.classList.contains('fab-open')){el.classList.remove('fab-open');e.preventDefault()}if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;if((e.ctrlKey||e.metaKey)&&(e.key==='o'||e.key==='O')){e.preventDefault();upload()}else if((e.ctrlKey||e.metaKey)&&(e.key==='n'||e.key==='N')){e.preventDefault();newDrawing()}e.stopImmediatePropagation()},true);
   setInterval(()=>{if(!visible()&&doc&&!doc.__gone&&Date.now()-lastThumb>90000&&doc.ents.length)thumb()},30000);
   return{show,hide,visible,render,closeDrawing,thumb,newDrawing}})();
@@ -7164,7 +7234,7 @@ window.addEventListener('resize',resize);document.addEventListener('visibilitych
   SAFE.boot();
   $('#cCol').onclick=()=>openColour();
   $('#cQd').onclick=()=>{if(T.name==='qdim'){sel.clear();finish()}else{sel.clear();setTool('qdim')}};
-  CMD.init();placeChips();QTP.init();PAL.init();refWrap();window.addEventListener('resize',placeChips);
+  CMD.init();placeChips();QTP.init();PAL.init();refWrap();try{afterUpdateCheck()}catch(e){}window.addEventListener('resize',placeChips);
 })();
 window.WallCAD=window.PlanCAD={get doc(){return doc},_draw:()=>{draw()},_inv:()=>invalidate(),_snap:(x,y)=>snapPoint(s2w(x,y),null,"full"),setTool,buildPDF,buildDXF,view:()=>view,zoomFit,makeSample,loadDoc};
 </script>
