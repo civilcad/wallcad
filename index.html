@@ -65,7 +65,7 @@ input.num{width:110px;flex:1 1 auto}
 .tb img{width:22px;height:22px}.tb svg.i{width:20px;height:20px}
 body.rb-min #tools{display:none}
 header{grid-area:h}#cmd{grid-area:c}#stage{grid-area:s}#bar{grid-area:b}#ribbon{grid-area:r}
-body.dock-l #app,body.dock-r #app{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-columns:46px minmax(0,1fr);grid-template-areas:"h h" "c c" "r s" "r b"}
+body.dock-l #app,body.dock-r #app{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-columns:70px minmax(0,1fr);grid-template-areas:"h h" "c c" "r s" "r b"}
 body.dock-r #app{grid-template-columns:minmax(0,1fr) 46px;grid-template-areas:"h h" "c c" "s r" "b r"}
 body.dock-l #ribbon,body.dock-r #ribbon{border-top:0;display:flex;flex-direction:column;min-height:0;padding-bottom:0}body.dock-l #ribbon{border-right:1px solid var(--line)}body.dock-r #ribbon{border-left:1px solid var(--line)}
 body.dock-l #tabs,body.dock-r #tabs{flex-direction:column;border-bottom:1px solid var(--line)}body.dock-l #tabs button,body.dock-r #tabs button{flex:0 0 auto;padding:8px 0;font-size:10.5px;border-bottom:0;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.3px}body.dock-l #tabs button.on,body.dock-r #tabs button.on{background:var(--acc2);color:#fff}body.dock-l #tabs .tx,body.dock-r #tabs .tx{flex:0 0 auto;padding:5px 0;writing-mode:horizontal-tb;transform:none}#tabs .tx svg.i{width:18px;height:18px}
@@ -231,6 +231,68 @@ body.chips-low #cmd{height:auto;min-height:30px}
 #qtp .qg{width:18px;color:var(--tx2);cursor:grab;font-size:14px}#qtp.vert .qg{width:32px;height:18px}
 #qtp .qe{color:var(--tx2);font-size:13px;width:24px}#qtp.vert .qe{width:32px;height:24px}
 #qtp svg.i{width:18px;height:18px}#qtp.dk-b,#qtp.dk-t{max-width:100%}#qtp.dk-l{border-radius:0 8px 8px 0;border-left:0}#qtp.dk-r{border-radius:8px 0 0 8px;border-right:0}#qtp.dk-b{border-radius:8px 8px 0 0;border-bottom:0}#qtp.dk-t{border-radius:0 0 8px 8px;border-top:0}
+/* separate, colour-coded tool tabs */
+#tabs{gap:4px;padding:4px 4px 0}
+#tabs button.tabb{flex:1;background:#1b1f25;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;color:#c9d1d9;padding:6px 2px 5px;font:700 11.5px system-ui,sans-serif;position:relative;box-shadow:inset 0 3px 0 var(--tc)}
+#tabs button.tabb:hover{background:#232830;color:#fff}
+#tabs button.tabb.on{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:none}
+#tabs button.tabb.out::after{content:"↗";position:absolute;right:4px;top:2px;font-size:9px;opacity:.8}
+body.dock-l #tabs button.tabb.out::after,body.dock-r #tabs button.tabb.out::after{content:none}
+#tools{border-top:3px solid var(--tc,#3b82f6)}
+body.dock-l #tabs button.tabb,body.dock-r #tabs button.tabb{flex:0 0 auto;border-radius:8px;border:1px solid var(--line);box-shadow:inset -3px 0 0 var(--tc);margin:2px 3px;padding:8px 0}
+body.dock-l #tabs button.tabb.on,body.dock-r #tabs button.tabb.on{background:var(--tc);box-shadow:none}
+body.dock-l #tools,body.dock-r #tools{border-top:0}
+#palHost{position:absolute;inset:0;pointer-events:none;z-index:4}
+.pal{position:absolute;pointer-events:auto;background:rgba(22,26,31,.96);border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.45);max-height:calc(100% - 8px);display:flex;flex-direction:column;overflow:hidden}
+.pal .ph{display:flex;align-items:center;gap:6px;padding:3px 4px 3px 8px;cursor:grab;color:#fff;font:700 11px system-ui,sans-serif;background:color-mix(in srgb,var(--tc) 35%,transparent);user-select:none}
+.pal .ph span{flex:1}.pal .ph button{border:0;background:transparent;color:#ddd;font-size:15px;cursor:pointer;padding:0 4px;line-height:1}
+.pal .pt{display:flex;flex-wrap:wrap;gap:2px;padding:4px;overflow:auto}
+.pal .pt .tb{flex:0 0 auto;width:62px;min-height:52px;font-size:10px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1;text-align:center;white-space:normal}
+.pal .pt .tb.sep{display:none}
+.pal.dk-l .pt,.pal.dk-r .pt{width:138px}.pal.dk-f .pt{max-width:420px}.pal.dk-t .pt{flex-wrap:nowrap;max-width:calc(100vw - 260px)}
+#palGhost{position:fixed;z-index:50;display:none;pointer-events:none;color:#fff;font:700 12px system-ui,sans-serif;padding:6px 10px;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+/* v47: every tool is its own little button */
+#tools{gap:4px;padding:4px 5px 5px}
+#tools .tb:not(.sep),.pal .pt .tb:not(.sep){background:#1b2028;border:1px solid #303844;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+#tools .tb:not(.sep):hover,.pal .pt .tb:not(.sep):hover{border-color:var(--tc,#3b82f6);background:#222833}
+#tools .tb.on,.pal .pt .tb.on{background:var(--tc,#3b82f6);border-color:var(--tc,#3b82f6);color:#fff}
+.pal .pt{gap:4px;padding:5px}
+body.dock-l #tools,body.dock-r #tools{gap:3px;padding:3px 0}
+body.light #tools .tb:not(.sep),body.light .pal .pt .tb:not(.sep){background:#fff;border-color:#cfd6df}
+
+/* v49: palettes on phones (compact), touch drag, My tools separate buttons */
+#tabs button.tabb{-webkit-touch-callout:none;user-select:none}
+.pal .ph{touch-action:none}
+.pal.sm .pt .tb{width:44px;min-height:40px;font-size:0;gap:0;padding:2px}
+.pal.sm.dk-l .pt,.pal.sm.dk-r .pt{width:50px}
+.pal.sm.dk-f .pt{max-width:200px}
+.pal.sm .ph{font-size:10px;padding:2px 2px 2px 6px}
+#qtp{gap:3px;padding:3px}
+#qtp button.qb{background:#1b2028;border:1px solid #303844;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+#qtp button.qb:hover{border-color:var(--acc);background:#222833}
+#qtp .qb.on{border-color:var(--acc)}
+
+/* v50: tool names under every icon (like the reference) */
+body.dock-l #tools .tb:not(.sep),body.dock-r #tools .tb:not(.sep){width:62px;height:auto;min-height:50px;font-size:9.5px;gap:2px;padding:4px 1px;white-space:normal;text-align:center;line-height:1.1}
+body.dock-l #tools .tb img,body.dock-r #tools .tb img{width:22px;height:22px}
+body.dock-l #tools .tb.sep,body.dock-r #tools .tb.sep{width:46px}
+body.dock-l #tabs button.tabb,body.dock-r #tabs button.tabb{margin:2px 12px}
+.pal.sm .pt .tb{width:58px;min-height:48px;font-size:9px;gap:2px;padding:3px 1px}
+.pal.sm.dk-l .pt,.pal.sm.dk-r .pt{width:64px}
+.pal.sm.dk-f .pt{max-width:250px}
+#qtp button.qb{width:46px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#qtp .ql{font:500 8.5px/1 system-ui,sans-serif;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#qtp.vert .qg,#qtp.vert .qe{width:46px}
+
+/* v51: My tools list scrolls */
+#qtp{flex-wrap:nowrap}
+#qtp .qs{display:flex;gap:3px;min-width:0;min-height:0;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#4a5462 transparent}
+#qtp.vert .qs{flex-direction:column;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;flex:1 1 auto;padding-right:1px}
+#qtp.vert{max-height:calc(100% - 12px)}
+#qtp:not(.vert){max-width:calc(100% - 66px)}
+#qtp.dk-b:not(.vert),#qtp.dk-t:not(.vert){max-width:100%}
+#qtp .qs::-webkit-scrollbar{width:4px;height:4px}#qtp .qs::-webkit-scrollbar-thumb{background:#4a5462;border-radius:4px}
+#qtp .qs button.qb{flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -1548,14 +1610,17 @@ const thumbs={};
 function blockThumb(k){if(thumbs[k])return thumbs[k];const B=BLOCKS[k],c=document.createElement('canvas');c.width=c.height=56;const g=c.getContext('2d');const w=B.w,d=B.d||(B.cut?230:B.w);let P=B.draw(w,d);if(B.cut)P=[R(-w/2-w*0.2,-d/2,-w/2,d/2),R(w/2,-d/2,w/2+w*0.2,d/2)].concat(P);const bb=primsBBox(P);const s=46/Math.max(bb.x1-bb.x0,bb.y1-bb.y0,1);g.translate(28,28);g.strokeStyle='#dfe3e8';g.fillStyle='#dfe3e8';g.lineWidth=2;
   const tp=p=>V((p.x-(bb.x0+bb.x1)/2)*s,-(p.y-(bb.y0+bb.y1)/2)*s);for(const pr of P){g.beginPath();if(pr.k==='L'){const a=tp(pr.a),b=tp(pr.b);g.moveTo(a.x,a.y);g.lineTo(b.x,b.y)}else if(pr.k==='P'){pr.pts.map(tp).forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));if(pr.closed)g.closePath()}else if(pr.k==='C'){const c=tp(pr.c);g.arc(c.x,c.y,pr.r*s,0,TAU)}else if(pr.k==='A'){const c=tp(pr.c);g.arc(c.x,c.y,pr.r*s,-pr.a0,-pr.a1,true)}else if(pr.k==='T'){const c=tp(pr.p);g.font='bold '+Math.max(8,pr.h*s)+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(pr.s,c.x,c.y)}g.stroke()}
   return thumbs[k]=c.toDataURL()}
-function renderTabs(){const side=S.dock==='l'||S.dock==='r',mn=!!S.rbMin;$('#tabs').innerHTML=`<button class="tx grip" id="dockGrip" title="Tap to choose, or drag to move the tool panel (left, right or bottom)" aria-label="Move tool panel">⠿</button>`+Object.keys(TABS).map(t=>`<button class="${t===tab&&!mn?'on':''}" data-tab="${t}">${t}</button>`).join('')+(side?`<button class="tx" data-dock="b" title="Move the tools back to the bottom" aria-label="Move tools to the bottom">${icon('dockb')}</button>`:'')+`<button class="tx" data-rbmin="1" title="${mn?'Show tools':'Hide tools for more drawing space'}" aria-label="${mn?'Show tools':'Hide tools'}">${mn?(side?'▸':'▴'):(side?'◂':'▾')}</button>`;
+function renderTabs(){const side=S.dock==='l'||S.dock==='r',mn=!!S.rbMin;$('#tabs').innerHTML=`<button class="tx grip" id="dockGrip" title="Tap to choose, or drag to move the tool panel (left, right or bottom)" aria-label="Move tool panel">⠿</button>`+Object.keys(TABS).map(t=>`<button class="tabb ${t===tab&&!mn?'on':''} ${S.pals&&S.pals[t]&&PAL.isPC()?'out':''}" data-tab="${t}" style="--tc:${TABCOL[t]||'#888'}" title="${esc(t)} tools${PAL.isPC()?' · drag onto the drawing (on a phone: press and hold, then drag), or right-click, to keep these tools open at the left, right or top':''}">${t}</button>`).join('')+(side?`<button class="tx" data-dock="b" title="Move the tools back to the bottom" aria-label="Move tools to the bottom">${icon('dockb')}</button>`:'')+`<button class="tx" data-rbmin="1" title="${mn?'Show tools':'Hide tools for more drawing space'}" aria-label="${mn?'Show tools':'Hide tools'}">${mn?(side?'▸':'▴'):(side?'◂':'▾')}</button>`;
   if(!TABS[tab])tab='Draw';
-  if(tab==='Osnap'){const on=S.osnap!==false;$('#tools').innerHTML=`<button class="tb ${on?'on':''}" data-osnall="1" title="Object snap on or off (same as the SNAP chip)">${icon('osnap')}Snap ${on?'ON':'OFF'}</button><span class="tb sep"></span>`+OSM_ORDER.map(k=>`<button class="tb ${on&&osm(k)?'on':''}" data-osn="${k}" title="${esc(SNAPNAME[k])}">${osnIcon(k)}${esc(SNAPNAME[k])}</button>`).join('')+`<span class="tb sep"></span><button class="tb" data-osnset="all">${icon('zin')}All on</button><button class="tb" data-osnset="def">${icon('undo')}Default</button>`;return}
+  $('#tools').innerHTML=toolsHTML(tab);$('#tools').style.setProperty('--tc',TABCOL[tab]||'#888');try{PAL.render()}catch(e){}}
+function toolsHTML(tab){
+  if(tab==='Osnap'){const on=S.osnap!==false;return`<button class="tb ${on?'on':''}" data-osnall="1" title="Object snap on or off (same as the SNAP chip)">${icon('osnap')}Snap ${on?'ON':'OFF'}</button><span class="tb sep"></span>`+OSM_ORDER.map(k=>`<button class="tb ${on&&osm(k)?'on':''}" data-osn="${k}" title="${esc(SNAPNAME[k])}">${osnIcon(k)}${esc(SNAPNAME[k])}</button>`).join('')+`<span class="tb sep"></span><button class="tb" data-osnset="all">${icon('zin')}All on</button><button class="tb" data-osnset="def">${icon('undo')}Default</button>`}
   const items=TABS[tab].map(k=>{if(tab==='Blocks')return`<button class="tb ${T.name==='place'&&st.b===k?'on':''}" data-block="${k}" title="${esc(BLOCKS[k].name)}"><img src="${blockThumb(k)}" alt="">${esc(BLOCKS[k].name)}</button>`;if(k==='props')return`<button class="tb" data-tool="props" title="Properties">${icon('props')}Properties</button>`;const t=TOOLS[k];const on=k==='dim'?T.name==='dim'&&S.dimMode!=='aligned':k==='dimal'?T.name==='dim'&&S.dimMode==='aligned':T.name===k;return`<button class="tb ${on?'on':''}" data-tool="${k}" title="${esc(t.label)}">${icon(t.icon)}${k==='dim'?'Linear':t.label}</button>`});
   if(tab==='Blocks'){const un=Object.keys(doc&&doc.ublk||{}).sort((a,b)=>a.localeCompare(b));items.push(`<span class="tb sep"></span><button class="tb" data-tool="myblocks" title="My blocks: insert, rename or delete">${icon('mkblock')}My blocks</button>`);un.slice(0,60).forEach(n=>items.push(`<button class="tb ${T.name==='uplace'&&st.b===n?'on':''}" data-ublk="${esc(n)}" title="${esc(n)}"><img src="${ublkThumb(n)}" alt="">${esc(n.length>12?n.slice(0,11)+'…':n)}</button>`))}
-  $('#tools').innerHTML=`<button class="tb ${T.name==='select'?'on':''}" data-tool="select" title="Select">${icon('select')}Select</button><span class="tb sep"></span>`+items.join('')}
+  return`<button class="tb ${T.name==='select'?'on':''}" data-tool="select" title="Select">${icon('select')}Select</button><span class="tb sep"></span>`+items.join('')}
 function setDock(z){S.dock=z;saveSoon();applyDock();toast('Tool panel '+({l:'on the left',r:'on the right',b:'at the bottom'})[z],1500)}
 function dockMenu(){openSheet('Tool panel position',`<div class="row">${btn('dl',icon('dockl')+' Left',S.dock==='l'?'on':'')}${btn('db',icon('dockb')+' Bottom',!S.dock||S.dock==='b'?'on':'')}${btn('dr',icon('dockr')+' Right',S.dock==='r'?'on':'')}</div><div class="hint">Tip: you can also drag the ⠿ handle to an edge of the screen.</div>`,sh=>{['l','b','r'].forEach(z=>sh.querySelector('[data-act=d'+z+']').onclick=()=>{closeSheet();setDock(z)})})}
+$('#tabs').addEventListener('click',e=>{if(Date.now()-PAL.suppress<400){e.stopImmediatePropagation();e.preventDefault()}},true);
 $('#tabs').addEventListener('click',e=>{const dk=e.target.closest('[data-dock]');if(dk){setDock(dk.dataset.dock);return}if(e.target.closest('[data-rbmin]')){S.rbMin=!S.rbMin;saveSoon();applyDock();return}const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;if(S.rbMin){S.rbMin=false;saveSoon();applyDock()}else renderTabs()});
 function applyDock(){try{placeChips()}catch(e){}const d=S.dock==='l'||S.dock==='r'?S.dock:'b';document.body.classList.toggle('dock-l',d==='l');document.body.classList.toggle('dock-r',d==='r');document.body.classList.toggle('rb-min',!!S.rbMin);renderTabs();resize()}
 (function dockDrag(){let on=false,zone=null,sx=0,sy=0,mv=false;const Z=$('#dockZ');
@@ -1565,7 +1630,7 @@ function applyDock(){try{placeChips()}catch(e){}const d=S.dock==='l'||S.dock==='
   const end=e=>{if(!on)return;on=false;Z.classList.remove('show');if(!mv){dockMenu();return}if(zone&&zone!==(S.dock||'b'))setDock(zone);else if(!zone)toast('Drop it on Left, Bottom or Right',1800)};
   $('#tabs').addEventListener('pointerup',end);$('#tabs').addEventListener('pointercancel',()=>{on=false;Z.classList.remove('show')})})();
 try{new ResizeObserver(()=>resize()).observe($('#stage'))}catch(e){}
-$('#tools').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.block){setTool('place',{b:b.dataset.block});return}
+function ribbonClick(b,fromTab){if(!b)return;if(b.dataset.block){setTool('place',{b:b.dataset.block});return}
   if(b.dataset.ublk){if(doc.ublk&&own(doc.ublk,b.dataset.ublk))setTool('uplace',{b:b.dataset.ublk});return}
   if(b.dataset.osnall){S.osnap=!(S.osnap!==false);updChips();renderTabs();toast('Object snap '+(S.osnap?'ON':'OFF'),1000);return}
   if(b.dataset.osn){const k=b.dataset.osn;S.osm=Object.assign({},OSM_DEF,S.osm||{});const v=!(S.osnap!==false&&osm(k));S.osm[k]=v?1:0;if(v)S.osnap=true;updChips();renderTabs();toast(SNAPNAME[k]+(v?' ON':' OFF'),900);return}
@@ -1579,7 +1644,8 @@ $('#tools').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   if(t==='colour'&&sel.size)return openColour();if(t==='join'&&sel.size)return joinSel();if(t==='group'&&sel.size)return groupSel();if(t==='ungroup'&&sel.size)return ungroupSel();
   if(t==='props'){if(!sel.size)return toast('Select something first');return openProps()}
   if(t==='delete'&&sel.size)return delSel();if(t==='explode'&&sel.size)return explodeSel();
-  if(t==='select'){const was=T.name==='select'&&st.opts;sel.clear();boxMode=false;return setTool('select',{opts:!was})}setTool(t)});
+  if(t==='select'){const was=T.name==='select'&&st.opts;sel.clear();boxMode=false;return setTool('select',{opts:!was})}setTool(t)}
+$('#tools').addEventListener('click',e=>ribbonClick(e.target.closest('button')));
 function refreshUI(){renderTabs();refreshBar();updPrompt();updTop();try{QTP.render()}catch(e){}}
 function updPrompt(){let p;if(st.phase==='sel')p=`Select objects to ${T.label.toLowerCase()} (tap, or hold then drag for a box), then tap Next`;else p=T.prompt?T.prompt():'';$('#prompt').innerHTML=`<b>${esc(T.label.toUpperCase())}</b> ${esc(p)}`}
 function refreshBar(){const foc=document.activeElement&&document.activeElement.id;let h='';if(st.phase==='sel')h=row(`<span class="cnt">${sel.size} selected</span>`,T.name==='delete'?btn('next','🗑 Delete','pri'):T.name==='explode'?btn('next','Explode','pri'):T.name==='join'?btn('next','Join','pri'):T.name==='group'?btn('next','Group','pri'):T.name==='ungroup'?btn('next','Ungroup','pri'):btn('next','Next','pri'),btn('box',boxMode?'▭ Box ON':'▭ Box',boxMode?'on':''),btn('selall','Select all'),CANCEL());else if(T.bar)h=T.bar();const b=$('#bar');b.innerHTML=h+'<button type="submit" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0"></button>';b.classList.toggle('show',!!h);if(foc==='inLen'&&$('#inLen'))$('#inLen').focus();requestAnimationFrame(resize)}
@@ -6285,7 +6351,7 @@ function makeSample(){
 
 
 /* ================= updates & offline ================= */
-const APP_VERSION='45';
+const APP_VERSION='51';
 const SHELL_CACHE='plancad-shell';
 const SHELL_FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png'];
 const VRX=/^\d{1,4}(\.\d{1,4}){0,3}$/;
@@ -6871,7 +6937,7 @@ const QTP=(function(){
   const cfg=()=>{S.qtp=S.qtp&&typeof S.qtp==='object'?S.qtp:{};const c=S.qtp;if(!Array.isArray(c.tools))c.tools=DEF.slice();c.tools=c.tools.filter(k=>all().includes(k));if(c.show==null)c.show=true;if(c.vert==null){c.vert=innerWidth<600;if(c.vert)c.dock='l'}return c};
   function run(k){if(k.startsWith('@'))return CMD.run(['',k,lab(k)]);const t=TOOLS[k];CMD.run(['',k,lab(k)])}
   function render(){const c=cfg();el.classList.toggle('vert',!!c.vert);el.classList.toggle('show',!!c.show&&!(typeof HOME!=='undefined'&&HOME.visible()));
-    el.innerHTML=`<button type="button" class="qg" data-q="grip" title="Drag to move · drop at a side edge for vertical, top or bottom for horizontal" aria-label="Move panel">⠿</button>`+c.tools.map(k=>`<button type="button" class="qb ${T&&(T.name===k||(k==='dim'&&T.name==='dim'&&S.dimMode!=='aligned')||(k==='dimal'&&T.name==='dim'&&S.dimMode==='aligned'))?'on':''}" data-k="${k}" title="${esc(lab(k))}" aria-label="${esc(lab(k))}">${ic(k)}</button>`).join('')+`<button type="button" class="qe" data-q="rot" title="Turn panel ${c.vert?'horizontal':'vertical'}" aria-label="Turn panel">${c.vert?'⇆':'⇅'}</button><button type="button" class="qe" data-q="edit" title="Add or remove tools" aria-label="Add or remove tools">✎</button>`;
+    el.innerHTML=`<button type="button" class="qg" data-q="grip" title="Drag to move · drop at a side edge for vertical, top or bottom for horizontal" aria-label="Move panel">⠿</button><div class="qs">`+c.tools.map(k=>`<button type="button" class="qb ${T&&(T.name===k||(k==='dim'&&T.name==='dim'&&S.dimMode!=='aligned')||(k==='dimal'&&T.name==='dim'&&S.dimMode==='aligned'))?'on':''}" data-k="${k}" title="${esc(lab(k))}" aria-label="${esc(lab(k))}">${ic(k)}<span class="ql">${esc(lab(k).replace(/ dim(ension)?$/i,''))}</span></button>`).join('')+`</div><button type="button" class="qe" data-q="rot" title="Turn panel ${c.vert?'horizontal':'vertical'}" aria-label="Turn panel">${c.vert?'⇆':'⇅'}</button><button type="button" class="qe" data-q="edit" title="Add or remove tools" aria-label="Add or remove tools">✎</button>`;
     place()}
   function place(){const c=cfg(),st2=$('#stage').getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let x=c.x,y=c.y;if(x==null){x=8;y=c.vert?Math.max(0,(st2.height-h)/2):8}
     if(c.dock==='l')x=0;else if(c.dock==='r')x=st2.width-w;else if(c.dock==='b')y=st2.height-h;else if(c.dock==='t')y=0;
@@ -6895,11 +6961,49 @@ const QTP=(function(){
       const pcTop=innerWidth>=760;c.dock=null;
       if(cx<near||cx>s.width-near){c.dock=cx<near?'l':'r';if(!c.vert){c.vert=true;render()}}else if(cy>s.height-near||(cy<near&&pcTop)){c.dock=cy<near?'t':'b';if(c.vert){c.vert=false;render()}}
       place();const r=el.getBoundingClientRect();c.x=r.left-s.left;c.y=r.top-s.top;saveSoon()};
-    el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{drag=null});
+    el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{drag=null});el.addEventListener('wheel',e=>{const q=e.target.closest('.qs');if(q){e.stopPropagation();if(!el.classList.contains('vert')&&e.deltaY&&!e.deltaX){q.scrollLeft+=e.deltaY;e.preventDefault()}}},{passive:false});
     el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();if(b.dataset.k)return run(b.dataset.k);if(b.dataset.q==='rot'){const c=cfg();c.vert=!c.vert;if(c.dock==='l'||c.dock==='r'){if(!c.vert)c.dock=null}else if(c.dock==='t'||c.dock==='b'){if(c.vert)c.dock=null}saveSoon();render()}else if(b.dataset.q==='edit')edit()});
     ['pointerdown','pointerup','wheel'].forEach(t=>el.addEventListener(t,e=>e.stopPropagation()));
     window.addEventListener('resize',()=>{if(el.classList.contains('show'))place()});render()}
   return{init,render,edit,toggle}})();
+/* ===== tab colours + tear-off tool palettes (PC) ===== */
+const TABCOL={Draw:'#3b82f6',Blocks:'#f59e0b',Modify:'#22c55e',Annotate:'#a855f7','3D':'#14b8a6',Osnap:'#ef4444'};
+const PAL=(function(){let host,drag=null;const isPC=()=>innerWidth>=300&&innerHeight>=300,small=()=>innerWidth<700||innerHeight<520;
+  const cfg=()=>{S.pals=S.pals&&typeof S.pals==='object'?S.pals:{};for(const k of Object.keys(S.pals))if(!TABS[k])delete S.pals[k];return S.pals};
+  function render(){if(!host)return;const c=cfg(),keys=isPC()&&!(typeof HOME!=='undefined'&&HOME.visible())?Object.keys(c):[];
+    host.querySelectorAll('.pal').forEach(el=>{if(!keys.includes(el.dataset.pal))el.remove()});
+    for(const k of keys){let el=host.querySelector(`.pal[data-pal="${CSS.escape(k)}"]`);if(!el){el=document.createElement('div');el.className='pal';el.dataset.pal=k;host.appendChild(el)}
+      const p=c[k];el.className='pal dk-'+(p.dock||'f')+(small()?' sm':'');el.style.setProperty('--tc',TABCOL[k]||'#888');
+      el.innerHTML=`<div class="ph" title="Drag to move · drop at the left, right or top edge to dock"><span>${esc(k)}</span><button type="button" data-pclose="1" title="Put back in the tool bar" aria-label="Close ${esc(k)} panel">×</button></div><div class="pt">${toolsHTML(k)}</div>`}
+    layout()}
+  function layout(){if(!host)return;const sr=$('#stage').getBoundingClientRect(),c=cfg(),off={l:0,r:0,t:0},lw=Math.max(0,...[...host.querySelectorAll('.pal.dk-l')].map(e=>e.offsetWidth+4));
+    for(const el of host.querySelectorAll('.pal')){const p=c[el.dataset.pal];if(!p)continue;const w=el.offsetWidth,h=el.offsetHeight;let x,y;
+      if(p.dock==='l'){x=0;y=off.l;off.l+=h+4}else if(p.dock==='r'){x=sr.width-w;y=off.r;off.r+=h+4}else if(p.dock==='t'){y=0;x=Math.max(56,lw)+off.t;off.t+=w+4}else{x=+p.x||100;y=+p.y||60}
+      x=Math.max(0,Math.min(x,sr.width-w));y=Math.max(0,Math.min(y,sr.height-Math.min(h,sr.height)));el.style.left=x+'px';el.style.top=y+'px'}}
+  function dropAt(k,cx,cy){const sr=$('#stage').getBoundingClientRect(),c=cfg(),p=c[k]||(c[k]={}),x=cx-sr.left,y=cy-sr.top,near=90;
+    if(x<near)p.dock='l';else if(x>sr.width-near)p.dock='r';else if(y<near)p.dock='t';else{p.dock='f';p.x=x-60;p.y=y-12}
+    if(cx<sr.left||cx>sr.right||cy<sr.top||cy>sr.bottom){if(cy>sr.bottom){delete c[k];saveSoon();render();toast(k+' tools back in the tool bar',1400);return}}
+    saveSoon();render();toast(k+' tools '+({l:'on the left',r:'on the right',t:'at the top',f:'placed'})[p.dock]+' · drag its title to move · × to close',2200)}
+  function ghost(t,x,y){let g=$('#palGhost');if(!g){g=document.createElement('div');g.id='palGhost';document.body.appendChild(g)}g.textContent=t+' tools';g.style.background=TABCOL[t]||'#555';g.style.left=(x+12)+'px';g.style.top=(y+8)+'px';g.style.display='block'}
+  function init(){host=document.createElement('div');host.id='palHost';$('#stage').appendChild(host);
+    // drag a tab out of the tool bar (PC)
+    let td=null;const tdEnd=()=>{if(td&&td.tm)clearTimeout(td.tm);td=null;const g=$('#palGhost');if(g)g.style.display='none'};
+    $('#tabs').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-tab]');if(!b||e.button>0)return;const touch=e.pointerType!=='mouse';td={t:b.dataset.tab,x:e.clientX,y:e.clientY,on:false,armed:!touch,touch,lp:false};
+      if(touch)td.tm=setTimeout(()=>{if(!td)return;td.armed=true;td.lp=true;try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}ghost(td.t,td.x,td.y)},380)});
+    $('#tabs').addEventListener('touchmove',e=>{if(td&&td.armed)e.preventDefault()},{passive:false});
+    window.addEventListener('pointercancel',()=>{if(td)tdEnd()});
+    window.addEventListener('pointermove',e=>{if(td){const d=Math.hypot(e.clientX-td.x,e.clientY-td.y);if(!td.armed){if(d>10)tdEnd()}else{if(!td.on&&d>(td.touch?8:14))td.on=true;if(td.on)ghost(td.t,e.clientX,e.clientY)}}
+      if(drag){const sr=$('#stage').getBoundingClientRect(),p=cfg()[drag.k];if(!p)return;if(!drag.on&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<6)return;drag.on=true;p.dock='f';p.x=e.clientX-sr.left-drag.dx;p.y=e.clientY-sr.top-drag.dy;drag.el.className='pal dk-f'+(small()?' sm':'');layout()}});
+    window.addEventListener('pointerup',e=>{if(td){const t=td;tdEnd();if(t.on){PAL.suppress=Date.now();dropAt(t.t,e.clientX,e.clientY)}else if(t.lp){PAL.suppress=Date.now();menu(t.t)}}
+      if(drag){const d=drag;drag=null;if(d.on)dropAt(d.k,e.clientX,e.clientY)}});
+    host.addEventListener('pointerdown',e=>{e.stopPropagation();const h=e.target.closest('.ph');if(h&&!e.target.closest('button')){const el=h.parentElement,r=el.getBoundingClientRect();drag={k:el.dataset.pal,el,dx:e.clientX-r.left,dy:e.clientY-r.top,sx:e.clientX,sy:e.clientY,on:false};e.preventDefault()}});
+    ['pointerup','wheel','dblclick'].forEach(t=>host.addEventListener(t,e=>e.stopPropagation()));
+    host.addEventListener('click',e=>{e.stopPropagation();const b=e.target.closest('button');if(!b)return;if(b.dataset.pclose){const k=b.closest('.pal').dataset.pal;delete cfg()[k];saveSoon();render();return}const pal=b.closest('.pal');if(pal&&TABS[pal.dataset.pal])ribbonClick(b,pal.dataset.pal)});
+    $('#tabs').addEventListener('contextmenu',e=>{const b=e.target.closest('[data-tab]');if(!b)return;e.preventDefault();if(Date.now()-PAL.suppress>600)menu(b.dataset.tab)});
+    window.addEventListener('resize',()=>render());render()}
+  function place(k,d){const c=cfg();if(!TABS[k])return;if(d==='x'){delete c[k]}else{const p=c[k]||(c[k]={});p.dock=d;if(d==='f'){const sr=$('#stage').getBoundingClientRect();p.x=Math.max(10,sr.width/2-110);p.y=60}}saveSoon();renderTabs()}
+  function menu(k){const c=cfg(),cur=c[k]?c[k].dock:'x';openSheet(k+' tools',`<div class="row">${btn('pl','◧ Left',cur==='l'?'on':'')}${btn('pt','⬒ Top',cur==='t'?'on':'')}${btn('pr','◨ Right',cur==='r'?'on':'')}${btn('pf','▣ Floating',cur==='f'?'on':'')}</div><div class="row">${btn('px','Back in the tool bar',cur==='x'?'on':'')}</div><div class="hint">Keeps the ${esc(k)} tools open beside the drawing. You can also drag the ${esc(k)} tab onto the drawing, and drag a panel's title to move it.</div>`,sh=>{['l','t','r','f','x'].forEach(z=>sh.querySelector('[data-act=p'+z+']').onclick=()=>{closeSheet();place(k,z)})})}
+  return{init,render,layout,isPC,place,menu,suppress:0}})();
 /* ===== Typed commands (AutoCAD style) + phone chip bar ===== */
 const CMD=(function(){
   const A=[['L','line','Line'],['LINE','line','Line'],['PL','pline','Polyline'],['PLINE','pline','Polyline'],['REC','rect','Rectangle'],['RECTANG','rect','Rectangle'],['C','circle','Circle'],['CIRCLE','circle','Circle'],['A','arc','Arc'],['ARC','arc','Arc'],
@@ -6968,7 +7072,7 @@ window.addEventListener('resize',resize);document.addEventListener('visibilitych
   SAFE.boot();
   $('#cCol').onclick=()=>openColour();
   $('#cQd').onclick=()=>{if(T.name==='qdim'){sel.clear();finish()}else{sel.clear();setTool('qdim')}};
-  CMD.init();placeChips();QTP.init();window.addEventListener('resize',placeChips);
+  CMD.init();placeChips();QTP.init();PAL.init();window.addEventListener('resize',placeChips);
 })();
 window.WallCAD=window.PlanCAD={get doc(){return doc},_draw:()=>{draw()},_inv:()=>invalidate(),_snap:(x,y)=>snapPoint(s2w(x,y),null,"full"),setTool,buildPDF,buildDXF,view:()=>view,zoomFit,makeSample,loadDoc};
 </script>

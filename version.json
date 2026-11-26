@@ -1,13 +1,12 @@
 {
-  "version": "45",
+  "version": "51",
   "date": "20 Nov 2026",
   "notes": [
-    "New block: L-stair + landing. Two flights at a right angle with a square landing between them, UP arrow and treads. In 3D the steps climb to the next floor with the landing halfway. Flip it for a turn the other way; change Width and Depth in Properties.",
-    "Presspull works on walls drawn with Line: in the 3D workspace drag the strip between the two wall lines, and it rises as a 3D wall (rooms inside stay open). Also works with Pull on plan.",
-    "Offset wall thickness: choose Same thickness, 4½\", 9\" or type any thickness for the new wall. The clear gap stays exactly the distance you set.",
-    "Offset for walls now measures the clear gap from the face of the wall to the face of the new wall, on the side you tap (a 10 ft offset gives a 10 ft room between the walls). A dashed preview shows where the new wall goes. Choose Wall: centre in the bar for the old centre-to-centre way.",
-    "3D workspace: walls stand up at their real height and you can Push/Pull the top of a wall to change its height (for a compound wall, parapet or low wall). Room insides are no longer picked. The House 3D view uses the new wall heights too.",
-    "3D workspace with X, Y and Z: tap 3D workspace (or type PP), then drag the top of any rectangle, circle, closed polyline or room up or down. It grows in 3D live while you drag. Type an exact height, start level and material in the bar.",
-    "Your 2D lines and walls show flat in the workspace so you can see what to pull."
+    "My tools panel scrolls: when you add many tools, swipe up and down (sideways when it lies flat) to reach them all. The ⠿ handle and the ⇅ ✎ buttons stay in place.",
+    "Tool names under every icon: in the side tool bar (Left or Right), in tab panels on phones and in the My tools panel.",
+    "Tab panels work on phones and tablets too: press and hold a tab, then drag it to the left, right or top. Press and hold without moving to pick a place from a list.",
+    "My tools panel buttons now each have their own box.",
+    "Tab panels now also work when WallCAD runs in a smaller window (like inside Claude). Right-click a tab to place its tools at the Left, Top, Right or Floating without dragging.",
+    "Every tool button inside a tab (Line, Circle, Move, Trim…) now has its own box, so the tools look clearly separate."
   ]
 }
