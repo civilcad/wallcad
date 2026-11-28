@@ -611,7 +611,15 @@ const BLOCKS={
  rtable:{name:'Round table',layer:'furn',w:1220,d:1220,draw:(w,d)=>{const r=w*0.3,P=[C(0,0,r)];const c=w*0.18,o=w/2-c/2;[[0,o],[0,-o],[o,0],[-o,0]].forEach(([x,y])=>P.push(R(x-c/2,y-c/2,x+c/2,y+c/2)));return P}},
  wc:{name:'WC',layer:'furn',w:450,d:700,draw:(w,d)=>[R(-w/2,d/2-180,w/2,d/2),E(0,d/2-180-245,w*0.42,250),E(0,d/2-180-235,w*0.3,180)]},
  basin:{name:'Wash basin',layer:'furn',w:560,d:450,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),E(0,-d*0.06,w*0.36,d*0.3),C(0,d*0.36,18)]},
- shower:{name:'Shower',layer:'furn',w:914,d:914,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),L(-w/2,-d/2,w/2,d/2),L(-w/2,d/2,w/2,-d/2),C(0,0,45)]},
+ shower:{name:'Shower',layer:'furn',w:914,d:914,draw:(w,d)=>{const m=Math.min(w,d),P=[];
+    const yp=d/2-m*0.13,rb=m*0.06,hr=m*0.17,hTop=yp-m*0.15,hb=hTop-hr;
+    P.push(L(m*0.34,yp,rb,yp),A(rb,yp-rb,rb,90,180),L(0,yp-rb,0,hTop),A(0,hb,hr,0,180),L(-hr*1.12,hb,hr*1.12,hb));
+    const dl=m*0.06,gap=m*0.045;for(const fx of[-0.72,-0.24,0.24,0.72])for(let k=0;k<3;k++){const y1=hb-m*0.05-k*(dl+gap);P.push(L(hr*fx,y1,hr*fx,y1-dl))}
+    return P}},
+  dresser:{name:'Dressing table',layer:'furn',w:1200,d:900,draw:(w,d)=>{const td=Math.min(450,d*0.55),y0=d/2-td,P=[R(-w/2,y0,w/2,d/2),R(-w*0.36,d/2-40,w*0.36,d/2),L(-w*0.36,d/2-40,-w*0.42,d/2-120),L(w*0.36,d/2-40,w*0.42,d/2-120),L(-w/2+w*0.22,y0,-w/2+w*0.22,d/2-40),L(w/2-w*0.22,y0,w/2-w*0.22,d/2-40),C(0,y0-Math.min(220,(d-td)*0.5),Math.min(170,(d-td)*0.4))];return P}},
+  wardrobe2:{name:'Sliding wardrobe',layer:'furn',w:2100,d:650,draw:(w,d)=>{const P=[R(-w/2,-d/2,w/2,d/2),L(-w/2+40,d*0.05,w/2-40,d*0.05)];for(let x=-w/2+160;x<w/2-120;x+=190)P.push(L(x-70,d*0.05-d*0.3,x+70,d*0.05+d*0.3));const fy=-d/2+50;P.push(L(-w/2,fy,w*0.04,fy),L(-w*0.04,fy+30,w/2,fy+30),L(-w*0.04,fy+30,-w*0.04,fy),L(w*0.04,fy,w*0.04,fy+30));return P}},
+  ac:{name:'Split AC',layer:'furn',w:950,d:260,draw:(w,d)=>{const P=[R(-w/2,-d/2,w/2,d/2),R(-w/2+30,-d/2+30,w/2-30,-d/2+90),TX(0,d*0.12,'AC',Math.min(d*0.45,w*0.18))];for(const x of[-w*0.3,0,w*0.3]){P.push(L(x,-d/2-40,x,-d/2-180),L(x,-d/2-180,x-40,-d/2-125),L(x,-d/2-180,x+40,-d/2-125))}return P}},
+  tvp:{name:'TV panel',layer:'furn',w:2400,d:150,draw:(w,d)=>{const tw=Math.min(w*0.6,1500),P=[R(-w/2,d/2-Math.max(40,d*0.35),w/2,d/2),R(-tw/2,-d/2,tw/2,d/2-Math.max(40,d*0.35)),L(-tw/2+40,-d/2+20,tw/2-40,-d/2+20),TX(0,-d/2-Math.max(120,d*0.9),'TV',Math.min(180,tw*0.12))];return P}},
  bath:{name:'Bathtub',layer:'furn',w:1700,d:750,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),E(0,0,w/2-90,d/2-80,32),C(w/2-230,0,30)]},
  kitchen:{name:'Kitchen counter',layer:'furn',w:2440,d:610,draw:(w,d)=>{const P=[R(-w/2,-d/2,w/2,d/2),R(-w/2+120,-d/2+90,-w/2+500,d/2-90),R(-w/2+540,-d/2+90,-w/2+920,d/2-90),C(-w/2+520,d/2-50,14)];const hx=w/2-420;[[-120,-110],[120,-110],[-120,110],[120,110]].forEach(([x,y])=>P.push(C(hx+x,y*d/610,80*Math.min(1,d/610))));return P}},
  fridge:{name:'Fridge',layer:'furn',w:710,d:710,draw:(w,d)=>[R(-w/2,-d/2,w/2,d/2),L(-w/2,-d/2+60,w/2,-d/2+60),TX(0,40,'REF',Math.min(w,d)*0.22)]},
@@ -626,7 +634,7 @@ const BLOCKS={
  plant:{name:'Plant',layer:'furn',w:500,d:500,draw:(w,d)=>{const r=w/2,P=[C(0,0,r),C(0,0,r*0.25)];for(let i=0;i<6;i++){const a=i/6*TAU;P.push(L(Math.cos(a)*r*0.25,Math.sin(a)*r*0.25,Math.cos(a+0.4)*r*0.9,Math.sin(a+0.4)*r*0.9))}return P}},
  north:{name:'North arrow',layer:'text',w:760,d:760,draw:(w,d)=>{const r=w/2;return[C(0,0,r),{k:'P',closed:true,pts:[V(0,r*0.85),V(r*0.32,-r*0.6),V(0,-r*0.3),V(-r*0.32,-r*0.6)]},TX(0,r*1.3,'N',r*0.5)]}}
 };
-const BLOCK_ORDER=['door','door2','slide','window','opening','bed','sbed','sofa','chair','dining','rtable','tv','wc','basin','shower','bath','kitchen','fridge','wardrobe','stairs','lstair','desk','car','plant','north'];
+const BLOCK_ORDER=['door','door2','slide','window','opening','bed','sbed','sofa','chair','dining','rtable','tv','tvp','ac','wc','basin','shower','bath','kitchen','fridge','wardrobe','wardrobe2','dresser','stairs','lstair','desk','car','plant','north'];
 
 function lstairGeo(w,d){const fw=Math.max(700,Math.min(1500,Math.min(w,d)/3)),x0=-w/2,x1=w/2,y0=-d/2,y1=d/2,T=254;
   const n1=Math.max(2,Math.round((d-fw)/T)),n2=Math.max(2,Math.round((w-fw)/T)),f1=[],f2=[];for(let i=1;i<n1;i++)f1.push(y0+(d-fw)*i/n1);for(let i=1;i<n2;i++)f2.push(x0+fw+(w-fw)*i/n2);
@@ -1321,17 +1329,19 @@ function offsetPoly(pts,closed,d){const n=pts.length,m=closed?n:n-1,segs=[];for(
   const out=[];for(let i=0;i<n;i++){if(!closed&&i===0){out.push(segs[0][0]);continue}if(!closed&&i===n-1){out.push(segs[m-1][1]);continue}const s1=segs[(i-1+m)%m],s2=segs[i%m],X=lineInt(s1[0],s1[1],s2[0],s2[1]);out.push(X?X.p:s2[0])}return out}
 defTool('offset',{label:'Offset',icon:'offset',draw:true,snap:'none',
   begin(){st.phase='pick'},
-  prompt(){const e=st.phase==='side'&&entById(st.obj);return st.phase==='pick'?`Offset ${fmtLenU(doc.set.offset)}: tap a line, wall, circle or polyline`:(e&&e.type==='wall'?(S.offW==='centre'?`Tap the side · new wall centre ${fmtLenU(doc.set.offset)} from this wall's centre`:`Tap the side · clear gap ${fmtLenU(doc.set.offset)} from this wall's face`):'Tap the side to offset to')},
+  prompt(){const e=st.phase==='side'&&entById(st.obj);return st.phase==='pick'?`Offset ${fmtLenU(doc.set.offset)}: tap a line, wall, circle or polyline`:(e&&e.type==='wall'?(S.offMk==='line'?(S.offW==='centre'?`Tap the side · line ${fmtLenU(doc.set.offset)} from this wall's centre`:`Tap the side · line ${fmtLenU(doc.set.offset)} from this wall's face`):S.offW==='centre'?`Tap the side · new wall centre ${fmtLenU(doc.set.offset)} from this wall's centre`:`Tap the side · clear gap ${fmtLenU(doc.set.offset)} from this wall's face`):'Tap the side to offset to')},
   offMake(e,raw){const d=doc.set.offset,c=clone(e);delete c.g;
+    if(e.type==='wall'&&S.offMk==='line'){const n=perp(nrm(sub(e.b,e.a))),sg=Math.sign(dot(sub(raw,e.a),n))||1,dd=S.offW==='centre'?d:d+e.t/2,v=mul(n,dd*sg);return{type:'line',a:add(e.a,v),b:add(e.b,v)}}
     if(isLin(e)){const n=perp(nrm(sub(e.b,e.a))),sg=Math.sign(dot(sub(raw,e.a),n))||1;let dd=d;if(e.type==='wall'){if(S.offT>0)c.t=S.offT;if(S.offW!=='centre')dd=d+e.t/2+c.t/2}const v=mul(n,dd*sg);c.a=add(e.a,v);c.b=add(e.b,v);return c}
     if(e.type==='circle'||e.type==='arc'){c.r=dist(raw,e.c)<e.r?e.r-d:e.r+d;return c.r>0?c:null}
     if(e.type==='pline'){let bi=0,bd=Infinity;const P=e.pts;for(let i=0;i<P.length-(e.closed?0:1);i++){const dd=distSeg(raw,P[i],P[(i+1)%P.length]);if(dd<bd){bd=dd;bi=i}}const a=P[bi],b=P[(bi+1)%P.length],sg=Math.sign(crs(sub(b,a),sub(raw,a)))||1;c.pts=offsetPoly(P,e.closed,d*sg);return c}return null},
   preview(g){if(st.phase!=='side'||!cursor)return;const e=entById(st.obj);if(!e)return;const c=this.offMake(e,cursor.raw||cursor.p);if(!c)return;if(c.type==='wall'){const u=nrm(sub(c.b,c.a)),n=mul(perp(u),c.t/2);g.line(add(c.a,n),add(c.b,n),true);g.line(sub(c.a,n),sub(c.b,n),true);g.line(add(c.a,n),sub(c.a,n),true);g.line(add(c.b,n),sub(c.b,n),true)}else g.prims(computePrims(c))},
   click(p,raw){if(st.phase==='pick'){const e=pickEnt(raw,e=>['line','wall','circle','arc','pline'].includes(e.type));if(!e)return toast('Tap a line, wall, circle, arc or polyline');st.obj=e.id;sel=new Set([e.id]);st.phase='side';refreshUI();render();return}
     const e=entById(st.obj);if(!e){st.phase='pick';return}const c=this.offMake(e,raw||p);if(!c)return toast('Too small to offset inward');
-    commit();addEnt(c);changed();sel.clear();st.phase='pick';refreshUI();if(e.type==='wall')toast((S.offW==='centre'?'Wall copied · centre to centre '+fmtLenU(doc.set.offset):'Wall copied · clear gap '+fmtLenU(doc.set.offset)+' between the faces')+' · '+fmtShort(c.t)+' thick',2000)},
-  bar(){return row(`<input id="inD" class="num" placeholder="Distance ${esc(fmtLenU(doc.set.offset))}">`,btn('setd','Set'),btn('wface','Wall: face gap',S.offW!=='centre'?'on':''),btn('wcen','Wall: centre',S.offW==='centre'?'on':''))+row(`<span style="opacity:.8">New wall</span>`,btn('tsame','Same thickness',!(S.offT>0)?'on':''),btn('t45',isFt()?'4½"':'115 mm',S.offT>0&&Math.abs(S.offT-(isFt()?114.3:115))<1?'on':''),btn('t9',isFt()?'9"':'230 mm',S.offT>0&&Math.abs(S.offT-(isFt()?228.6:230))<1?'on':''),`<input id="inT" class="num" style="min-width:86px" placeholder="${isFt()?'inches, e.g. 6':'mm, e.g. 150'}">`,btn('sett','Set'),DONE())},
-  act(a){if(a==='tsame'||a==='t45'||a==='t9'){S.offT=a==='tsame'?0:a==='t45'?(isFt()?114.3:115):(isFt()?228.6:230);saveSoon();refreshUI();render();toast(S.offT?'New wall '+fmtShort(S.offT)+' thick':'New wall: same thickness as the picked wall',1500);return}
+    commit();addEnt(c);changed();sel.clear();st.phase='pick';refreshUI();if(e.type==='wall'&&c.type==='line')toast('Line '+fmtLenU(doc.set.offset)+' from the wall '+(S.offW==='centre'?'centre':'face'),1800);else if(e.type==='wall')toast((S.offW==='centre'?'Wall copied · centre to centre '+fmtLenU(doc.set.offset):'Wall copied · clear gap '+fmtLenU(doc.set.offset)+' between the faces')+' · '+fmtShort(c.t)+' thick',2000)},
+  bar(){return row(`<input id="inD" class="num" placeholder="Distance ${esc(fmtLenU(doc.set.offset))}">`,btn('setd','Set'),btn('wface','Wall: face gap',S.offW!=='centre'?'on':''),btn('wcen','Wall: centre',S.offW==='centre'?'on':''))+row(`<span style="opacity:.8">From a wall make</span>`,btn('mkw','A wall',S.offMk!=='line'?'on':''),btn('mkl','A line',S.offMk==='line'?'on':''))+(S.offMk==='line'?'':row(`<span style="opacity:.8">New wall</span>`,btn('tsame','Same thickness',!(S.offT>0)?'on':''),btn('t45',isFt()?'4½"':'115 mm',S.offT>0&&Math.abs(S.offT-(isFt()?114.3:115))<1?'on':''),btn('t9',isFt()?'9"':'230 mm',S.offT>0&&Math.abs(S.offT-(isFt()?228.6:230))<1?'on':''),`<input id="inT" class="num" style="min-width:86px" placeholder="${isFt()?'inches, e.g. 6':'mm, e.g. 150'}">`,btn('sett','Set')))+row(DONE())},
+  act(a){if(a==='mkw'||a==='mkl'){S.offMk=a==='mkl'?'line':'wall';saveSoon();refreshUI();render();toast(S.offMk==='line'?'Offset a wall now makes a line':'Offset a wall makes a new wall',1500);return}
+    if(a==='tsame'||a==='t45'||a==='t9'){S.offT=a==='tsame'?0:a==='t45'?(isFt()?114.3:115):(isFt()?228.6:230);saveSoon();refreshUI();render();toast(S.offT?'New wall '+fmtShort(S.offT)+' thick':'New wall: same thickness as the picked wall',1500);return}
     if(a==='sett'){const raw=$('#inT').value.trim(),bare=/^\d+(\.\d+)?$/.test(raw);const v=bare?(isFt()?parseFloat(raw)*25.4:parseFloat(raw)<5?parseFloat(raw)*1000:parseFloat(raw)):parseLen(raw);if(v>=10&&v<=5000){S.offT=v;saveSoon();refreshUI();render();toast('New wall '+fmtShort(v)+' thick',1500)}else toast('Type a wall thickness, like 4.5" or 115');return}
     if(a==='wface'||a==='wcen'){S.offW=a==='wcen'?'centre':'face';saveSoon();refreshUI();render();return}if(a==='setd'){const v=parseLen($('#inD').value);if(v>0){doc.set.offset=v;saveSoon();refreshUI()}else toast('Type a distance')}else if(a==='done'){sel.clear();finish()}}});
 
@@ -6469,7 +6479,7 @@ function makeSample(){
 
 
 /* ================= updates & offline ================= */
-const APP_VERSION='66';
+const APP_VERSION='70';
 const SHELL_CACHE='plancad-shell';
 const SHELL_FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png','icon-maskable-512.png'];
 const VRX=/^\d{1,4}(\.\d{1,4}){0,3}$/;
@@ -6488,6 +6498,10 @@ async function fetchRemote(){const r=await fetch('version.json?t='+Date.now(),{c
   return{version:v,notes,date:String(j.date||'').slice(0,20)}}
 /* ===== What's new after an update (v62) ===== */
 const CHANGES=[
+ ['70',['Shower block without the boundary box: only the shower symbol.']],
+ ['69',['Shower block redrawn as a shower head with a pipe and falling water, easy to read in the plan.']],
+ ['68',['New blocks: Dressing table, Sliding wardrobe, Split AC and TV panel.','A clearer Shower block.']],
+ ['67',['Offset a wall can now make a line instead of a wall: Offset › From a wall make › A line. The distance is from the wall face (or centre).']],
  ['66',['PDF and Zoom fit: texts no longer add hidden empty space around the drawing, so the plan prints much bigger on the page.']],
  ['65',['Export PDF: narrow page margins (5 mm by default, 3 mm or 10 mm to choose) and a slimmer title box, so the drawing gets more of the paper.']],
  ['64',['Export PDF: print only the selected objects, and hide the border and title box so only the drawing fills the page.']],
@@ -6637,7 +6651,11 @@ function furn3D(Z0,e,xf,cap,lit){cap=cap||1e9;lit=lit||(()=>{});const LT=(x,y,z,
       for(const[a2,b2]of[[-1,-1],[1,-1],[-1,1],[1,1]])box(x+a2*c/2-a2*30-15,y+b2*c/2-b2*30-15,x+a2*c/2-a2*30+15,y+b2*c/2-b2*30+15,0,420,OAK,5)}break}
   case'wc':{box(-w/2+20,d/2-180,w/2-20,d/2,380,780,WHITE,0,40);box(-w/2+40,d/2-170,w/2-40,d/2-10,780,810,[0.9,0.9,0.9],0,30);ell(0,d/2-180-200,w*0.28,200,0,250,WHITE);ell(0,d/2-180-245,w*0.42,250,250,400,WHITE);ell(0,d/2-180-235,w*0.3,180,400,402,[0.72,0.82,0.86]);box(-w/2+40,d/2-200,w/2-40,d/2-180,400,420,WHITE);break}
   case'basin':{box(-w/2,-d/2,w/2,d/2,0,780,OAK,5,10);box(-w/2+15,-d/2-5,-5,d/2,120,760,[0.6,0.43,0.28],5,6);box(5,-d/2-5,w/2-15,d/2,120,760,[0.6,0.43,0.28],5,6);box(-w/2,-d/2,w/2,d/2,780,820,[0.92,0.91,0.89],3,15);ell(0,-d*0.06,w*0.36,d*0.3,820,830,[0.82,0.84,0.85]);cyl(0,d*0.36,16,820,1000,STEEL,0,10);box(-12,d*0.36-90,12,d*0.36,980,1000,STEEL);break}
-  case'shower':{box(-w/2,-d/2,w/2,d/2,0,50,WHITE,4,10);cyl(0,0,40,50,52,STEEL,0,12);cyl(w/2-60,d/2-60,14,50,2000,STEEL,0,8);cyl(w/2-180,d/2-180,90,1990,2010,STEEL,0,16);box(-w/2,-d/2,-w/2+12,d/2,50,1900,[0.7,0.84,0.9],8);box(-w/2,-d/2,w/2,-d/2+12,50,1900,[0.7,0.84,0.9],8);break}
+  case'shower':{box(-w/2,-d/2,w/2,d/2,0,50,WHITE,4,10);cyl(0,0,40,50,52,STEEL,0,12);{const m=Math.min(w,d),hy=d/2-m*0.27;cyl(0,d/2-20,14,50,2080,STEEL,0,8);box(-8,hy,8,d/2-20,2070,2085,STEEL);cyl(0,hy,m*0.15,2000,2015,STEEL,0,20)}box(-w/2,-d/2,-w/2+12,d/2,50,1900,[0.7,0.84,0.9],8);box(-w/2,-d/2,w/2,-d/2+12,50,1900,[0.7,0.84,0.9],8);break}
+  case'ac':{box(-w/2,-d/2,w/2,d/2,2100,2400,WHITE,5,30);box(-w/2+30,-d/2-2,w/2-30,-d/2+10,2120,2170,[0.75,0.77,0.8]);break}
+  case'tvp':{const pd=Math.max(40,d*0.35),tw=Math.min(w*0.6,1500);box(-w/2,d/2-pd,w/2,d/2,0,2400,[0.42,0.3,0.2],5);box(-tw/2,-d/2,tw/2,d/2-pd,1000,1000+tw*0.56,BLACK,8);break}
+  case'dresser':{const td=Math.min(450,d*0.55),y0=d/2-td;box(-w/2,y0,w/2,d/2,0,750,[0.62,0.46,0.32],5,8);box(-w*0.36,d/2-40,w*0.36,d/2,750,1650,[0.78,0.86,0.9],8);cyl(0,y0-Math.min(220,(d-td)*0.5),Math.min(170,(d-td)*0.4),0,450,[0.7,0.6,0.5],5,18);break}
+  case'wardrobe2':{box(-w/2,-d/2,w/2,d/2,0,2100,[0.55,0.42,0.3],5,6);box(-w/2,-d/2-2,w*0.04,-d/2+20,40,2060,[0.7,0.74,0.78],8);box(-w*0.04,-d/2+20,w/2,-d/2+45,40,2060,[0.62,0.5,0.38],5);break}
   case'bath':{box(-w/2,-d/2,w/2,d/2,0,560,WHITE,0,60);ell(0,0,w/2-90,d/2-80,560,563,[0.72,0.85,0.9]);cyl(w/2-230,0,20,560,700,STEEL,0,10);break}
   case'kitchen':{LT(0,-d/2-300,1300,1600);box(-w/2+30,-d/2+50,w/2-30,d/2,0,100,BLACK);box(-w/2,-d/2,w/2,d/2,100,870,[0.24,0.19,0.15],5);const nd=Math.max(1,Math.round(w/600));for(let i=1;i<nd;i++){const x=-w/2+w*i/nd;box(x-4,-d/2-3,x+4,-d/2+2,130,850,[0.7,0.68,0.64])}
     for(let i=0;i<nd;i++){const x=-w/2+w*(i+0.5)/nd;box(x-90,-d/2-18,x+90,-d/2,780,800,STEEL)}

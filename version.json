@@ -1,12 +1,12 @@
 {
-  "version": "66",
+  "version": "70",
   "date": "20 Nov 2026",
   "notes": [
+    "Shower block without the boundary box: only the shower symbol.",
+    "Shower block redrawn as a shower head with a pipe and falling water, easy to read in the plan.",
+    "New blocks: Dressing table, Sliding wardrobe, Split AC and TV panel, plus a clearer Shower (round rain shower head and floor drain).",
+    "Offset: From a wall make › A line, to draw a line at the offset distance from a wall face (or centre) instead of a new wall.",
     "PDF and Zoom fit: texts no longer add hidden empty space around the drawing, so the plan prints much bigger and fills the page.",
-    "Export PDF: Page margin Narrow (5 mm, default), Very narrow (3 mm) or Normal (10 mm), and a slimmer title box, so the drawing gets more of the page.",
-    "Export PDF: Only the selected objects, and Border and title box: Hide, so only your drawing fills the whole page.",
-    "Export PDF: Fill the whole page (default) and Auto page direction make the drawing or picked area fill the paper. A live page preview shows before you save; tap it to see it big.",
-    "After every update, a box now shows what changed (Home ⋮ › What’s new shows it again any time).",
-    "Text size: the Text box has A− / A+ buttons, a size box and quick sizes, with a preview. Select texts, room names or dimensions and tap A− Text or A+ Text to make them smaller or bigger."
+    "Export PDF: Page margin Narrow (5 mm, default), Very narrow (3 mm) or Normal (10 mm), and a slimmer title box, so the drawing gets more of the page."
   ]
 }
